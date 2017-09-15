@@ -1,20 +1,20 @@
-#Stability of large sample fMRI data.
+# Stability of large sample fMRI data.
 
 
 In this project, we investigate test-retest reliability and stability of large samples in fMRI data
 using the *IMAGEN* database.
 
-##Structure of files
+## Structure of files
 * Sampling: here goes the scripts that lead to data generation
 * Analyses: analyzing the data.
 
-##Members
+## Members
 * [Han Bossier]
 * [Sanne Roels]
 * [Ruth Seurinck]
 * [Beatrijs Moerkerke]
  
-##Extra info
+## Extra info
 See [trello]
 
 
