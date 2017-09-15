@@ -14,9 +14,6 @@ using the *IMAGEN* database.
 * [Ruth Seurinck]
 * [Beatrijs Moerkerke]
  
-## Extra info
-See [trello]
-
 
 **All actual data should be on NeuroStats server!**
 
@@ -28,4 +25,4 @@ First Modified: 26/06/15
 [Sanne Roels]: http://telefoonboek.ugent.be/nl/people/802000817361
 [Ruth Seurinck]: http://telefoonboek.ugent.be/nl/people/801001629152
 [Beatrijs Moerkerke]: http://telefoonboek.ugent.be/nl/people/801001453542
-[trello]: https://trello.com/b/z3yia1zB/project-freddie-freeloader
+
