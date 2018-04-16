@@ -1,8 +1,8 @@
 ####################
-#### TITLE:     Give back the correspondig run and step from a sequence of numbers for experiment controlling for centers
+#### TITLE:     Give back the correspondig run and step from a sequence of numbers
 #### Contents: 	
 #### 
-#### Source Files: \\FreddieFreeloader/Script.git/Sampling/CenterEffect
+#### Source Files: \\FreddieFreeloader/Script.git/Sampling/SplitSubjects
 #### First Modified: 26/06/2015
 #### Notes: 
 #################
@@ -36,26 +36,12 @@ scenario <- as.character(args[2])
 ##
 
 # There are in scenario A:
-	# A) 42 runs 
+	# A) 50 runs 
 	# B) 70 steps in each run
 	# C) 2 groups in each step within a run
-	if(scenario=='A'){NRUNS <- 42;NSTEP <- 70}
+	if(scenario=='A'){NRUNS <- 50;NSTEP <- 70}
 
-
-# There are in scenario B:
-	# A) 42 runs 
-	# B) 14 steps in each run
-	# C) 2 groups in each step within a run
-	if(scenario=='B'){NRUNS <- 42;NSTEP <- 13}
-
-
-# There are in scenario C:
-	# A) 42 runs 
-	# B) 7 steps in each run
-	# C) 2 groups in each step within a run
-	if(scenario=='C'){NRUNS <- 42;NSTEP <- 6}
-
-
+# Provide the sequenced numbers
 RUNsequence <- rep(c(1:NRUNS),each=(NSTEP*2))
 	run <- RUNsequence[index]
 STEPsequence <- rep(rep(c(1:NSTEP),each=2),NRUNS)

@@ -13,7 +13,8 @@
 ###############
 ##
 
-# We only want to keep slice 1 of the masks. For large group analyses, it is not conventient to have lot's of the same slices. 
+# We only want to keep slice 1 of the masks. 
+# For large group analyses, it is not conventient to have lot's of the same slices. 
 
 
 ##

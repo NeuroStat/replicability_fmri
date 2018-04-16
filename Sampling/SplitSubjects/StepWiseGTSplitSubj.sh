@@ -60,8 +60,7 @@ if [ $COMPUTER = MAC ] ; then
 	SCRPT=/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/Sampling/SplitSubjects
 fi
 if [ $COMPUTER = HPC ] ; then
-	SCRPT=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/SplitSubjects
-	#SCRPT=/user/scratch/gent/vsc407/vsc"$vsc"/Freddie/SplitSubjects"$scenario"
+	SCRPT=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/Freddie/SplitSubjects
 fi
 cd "${SCRPT}"
 
@@ -92,8 +91,7 @@ if [ $COMPUTER = MAC ] ; then
 	SAMPLEWD=/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/SampleSizes/SplitSubjects/Scenario"$scenario"/Run_$RUN
 fi
 if [ $COMPUTER = HPC ] ; then
-	SAMPLEWD=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/SplitSubjects/Results/SampleSizes/Scenario"$scenario"/Run_$RUN
-	#SAMPLEWD=/user/scratch/gent/vsc407/vsc"$vsc"/Freddie/SplitSubjects"$scenario"/Results/SampleSizes/Scenario"$scenario"/Run_$RUN
+	SAMPLEWD=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/Freddie/SplitSubjects/Results/SampleSizes/Run_$RUN
 fi
 
 # Need to have a temporary folder, one for each run, step and group so there is no overlap in calculations (parallel processing)!

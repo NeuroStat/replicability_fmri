@@ -1,7 +1,7 @@
 #!/bin/sh
 #
 #
-#PBS -N FreddieFSCNA
+#PBS -N FreddieReDoA
 #PBS -o output/output.file
 #PBS -e error/error.file
 #PBS -m a
@@ -26,10 +26,10 @@ scenario=A
 #----------------------------------------------------#
 
 
-srcdir=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/SplitSubjects
-#srcdir=/user/scratch/gent/vsc407/vsc"$vsc"/Freddie/SplitSubjects"$scenario"
+srcdir=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/Freddie/SplitSubjects
 cd $srcdir
 
+# There are 7000 jobs to be submitted!
 ./StepWiseGTSplitSubj.sh ${PBS_ARRAYID} $vsc $scenario
 
 echo "job finished"
