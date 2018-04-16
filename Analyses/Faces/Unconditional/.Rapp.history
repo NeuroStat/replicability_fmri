@@ -1,0 +1,754 @@
+"approval", "beliefs", "selftalk", "imagery"))
+COV
+.939**2
+inspect(fit, "sampstat")
+model <- ' #
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking = ~ beliefs + selftalk + imagery#
+#
+# correlated residual#
+happy ~~ mood2#
+'
+model <- ' #
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking = ~ beliefs + selftalk + imagery#
+# correlated residual#
+happy ~~ mood2#
+'
+fit <- cfa(model, sample.cov=COV, sample.nobs=263)
+COV
+# meetmodel#
+model <- ' #
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking =~ beliefs + selftalk + imagery#
+# correlated residual#
+happy ~~ mood2#
+'
+fit <- cfa(model, sample.cov=COV, sample.nobs=263)
+happy ~~ mood2
+model
+model <- ' #
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking =~ beliefs + selftalk + imagery#
+happy ~~ mood2#
+'
+fit <- cfa(model, sample.cov=COV, sample.nobs=263)
+model
+sds
+data.Thurstone <- read.table(#
+"http://www.da.ugent.be/datasets/thurstone1985.dat", header=TRUE)
+model.cfa <- '#
+    VerbalAbility =~ Va1 + Va2 + Va3#
+    WordFluency =~ Wf1 + Wf2 + Wf3#
+    ReasoningAbility =~ Ra1 + Ra2 + Ra3#
+'
+fit <- cfa(model.cfa, data=data.Thurstone)
+fit
+summary(fit, fit.measures=TRUE,standardized=TRUE)
+inspect(fit, "sampstat")
+?cfa
+# meetmodel#
+model <- ' #
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking =~ beliefs + selftalk + imagery#
+happy ~~ mood2#
+'
+# fitten model#
+fit <- cfa(model, sample.cov=COV, sample.nobs=263)
+COV
+class(COV)
+# correlatie-matrix#
+CORRREL <- '#
+1.000#
+  .668 1.000#
+  .635  .599 1.000#
+  .263  .261  .164 1.000#
+  .290  .315  .247  .486 1.000#
+  .207  .245  .231  .251  .449 1.000#
+ -.206 -.182 -.195 -.309 -.266 -.142 1.000#
+ -.280 -.241 -.238 -.344 -.305 -.230  .753 1.000#
+ -.258 -.244 -.185 -.255 -.255 -.215  .554  .587 1.000#
+  .080  .096  .094 -.017  .151  .141 -.074 -.111  .016 1.000#
+  .061  .028 -.035 -.058 -.051 -.003 -.040 -.040 -.018 .284 1.000#
+  .113  .174  .059  .063  .138  .044 -.119 -.073 -.084 .563  .379 1.000 '#
+# converteer naar covariantie-matrix met variabele namen#
+COVAR <- lavaan:::getCov(COR, sds = sds, names = c("work1", "work2", "work3",#
+                       "happy", "mood1", "mood2", "perform1", "perform2",#
+                       "approval", "beliefs", "selftalk", "imagery"))
+fit <- cfa(model, sample.cov=COVAR, sample.nobs=263)
+MeetModel <- ' #
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking =~ beliefs + selftalk + imagery#
+happy ~~ mood2#
+'
+fit <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+FITM
+SDS <- c(.939, 1.017, .937, .562, .760, .524, .585, .609, .731, .711, 1.124, 1.001)
+# standaardafwijkingen#
+SDS <- c(.939, 1.017, .937, .562, .760, .524, .585, .609, .731, .711, 1.124, 1.001)#
+# correlatie-matrix#
+CORRREL <- '#
+1.000#
+  .668 1.000#
+  .635  .599 1.000#
+  .263  .261  .164 1.000#
+  .290  .315  .247  .486 1.000#
+  .207  .245  .231  .251  .449 1.000#
+ -.206 -.182 -.195 -.309 -.266 -.142 1.000#
+ -.280 -.241 -.238 -.344 -.305 -.230  .753 1.000#
+ -.258 -.244 -.185 -.255 -.255 -.215  .554  .587 1.000#
+  .080  .096  .094 -.017  .151  .141 -.074 -.111  .016 1.000#
+  .061  .028 -.035 -.058 -.051 -.003 -.040 -.040 -.018 .284 1.000#
+  .113  .174  .059  .063  .138  .044 -.119 -.073 -.084 .563  .379 1.000 '#
+#
+# converteer naar covariantie-matrix met variabele namen#
+COVAR <- lavaan:::getCov(COR, sds = SDS, names = c("work1", "work2", "work3",#
+                       "happy", "mood1", "mood2", "perform1", "perform2",#
+                       "approval", "beliefs", "selftalk", "imagery"))#
+# meetmodel#
+MeetModel <- '#
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking =~ beliefs + selftalk + imagery#
+happy ~~ mood2#
+'#
+#
+# fitten model#
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)#
+# toon resultaten#
+summary(fit, fit.measures=TRUE, standardized=TRUE)
+summary(FITM, fit.measures=TRUE, standardized=TRUE)
+library(lavaan)#
+#
+# correlatie matrix#
+COR <- '#
+ 1.000#
+ 0.767   1.000#
+ 0.731   0.709   1.000#
+ 0.778   0.738   0.762   1.000#
+-0.351  -0.302  -0.356  -0.318   1.000#
+-0.316  -0.280#
+-0.296  -0.289#
+-0.282  -0.254#
+-0.300  -0.267#
+-0.297  -0.296#
+-0.292  -0.245#
+0.675   1.000#
+0.634   0.651   1.000#
+0.534   0.593   0.566   1.000 '
+COR
+# correlatie matrix#
+COR <- '#
+ 1.000#
+ 0.767   1.000#
+ 0.731   0.709   1.000#
+ 0.778   0.738   0.762   1.000#
+-0.351  -0.302  -0.356  -0.318   1.000#
+-0.316  -0.280	-0.300  -0.267	0.675   1.000#
+-0.296  -0.289	-0.297  -0.296	0.634   0.651   1.000#
+-0.282  -0.254	-0.292  -0.245	0.534   0.593   0.566   1.000 '
+COV <- lavaan:::getCov(COR, sds=sds, names = c("n1","n2","n3","n4",#
+                                              "e1","e2","e3","e4"))#
+COV
+sds <- c(5.7, 5.6, 6.4, 5.7, 6.0, 6.2, 5.7, 5.6)
+COV <- lavaan:::getCov(COR, sds=sds, names = c("n1","n2","n3","n4",#
+                                              "e1","e2","e3","e4"))#
+COV
+sds
+5.7**2
+model <- '#
+Neurot =~ n1 + n2 + n3 + n4#
+Extrav =~ e1 + e2 + e3 + e4#
+'#
+#
+fit <- cfa(model, sample.cov=COV, sample.nobs=250)
+fit
+# correlatie-matrix#
+CORRREL <- '#
+1.000#
+.668	1.000#
+.635	.599	1.000#
+.263	.261	.164	1.000#
+.290	.315	.247	.486	1.000#
+.207	.245	.231	.251	.449	1.000#
+-.206	-.182	-.195	-.309	-.266	-.142	1.000#
+-.280 -.241 -.238 -.344 -.305 -.230	.753	1.000#
+-.258 -.244 -.185 -.255 -.255 -.215	.554	.587	1.000#
+.080  .096  .094 -.017  .151  .141 -.074 -.111	.016	1.000#
+.061  .028 -.035 -.058 -.051 -.003 -.040 -.040 -.018	.284	1.000#
+.113	.174	.059	.063	.138	.044	-.119	-.073	-.084	.563	.379	1.000 '
+COVAR <- lavaan:::getCov(COR, sds = SDS, names = c("work1", "work2", "work3",#
+                       "happy", "mood1", "mood2", "perform1", "perform2",#
+                       "approval", "beliefs", "selftalk", "imagery"))
+SDS <- c(.939, 1.017, .937, .562, .760, .524, .585, .609, .731, .711, 1.124, 1.001)
+CORRREL <- '#
+1.000#
+.668	1.000#
+.635	.599	1.000#
+.263	.261	.164	1.000#
+.290	.315	.247	.486	1.000#
+.207	.245	.231	.251	.449	1.000#
+-.206	-.182	-.195	-.309	-.266	-.142	1.000#
+-.280 -.241 -.238 -.344 -.305 -.230	.753	1.000#
+-.258 -.244 -.185 -.255 -.255 -.215	.554	.587	1.000#
+.080  .096  .094 -.017  .151  .141 -.074 -.111	.016	1.000#
+.061  .028 -.035 -.058 -.051 -.003 -.040 -.040 -.018	.284	1.000#
+.113	.174	.059	.063	.138	.044	-.119	-.073	-.084	.563	.379	1.000 '#
+#
+# converteer naar covariantie-matrix met variabele namen#
+COVAR <- lavaan:::getCov(COR, sds = SDS, names = c("work1", "work2", "work3",#
+                       "happy", "mood1", "mood2", "perform1", "perform2",#
+                       "approval", "beliefs", "selftalk", "imagery"))
+COVAR <- lavaan:::getCov(CORRREL, sds = SDS, names = c("work1", "work2", "work3",#
+                       "happy", "mood1", "mood2", "perform1", "perform2",#
+                       "approval", "beliefs", "selftalk", "imagery"))
+COVAR
+MeetModel <- '#
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking =~ beliefs + selftalk + imagery#
+happy ~~ mood2#
+'#
+#
+# fitten model#
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+CORRREL <- '#
+1.000#
+.668	1.000#
+.635	.599	1.000#
+.263	.261	.164	1.000#
+.290	.315	.247	.486	1.000#
+.207	.245	.231	.251	.449	1.000#
+-.206	-.182	-.195	-.309	-.266	-.142	1.000#
+-.280	-.241 -.238 -.344 -.305 -.230	.753	1.000#
+-.258	-.244	-.185	-.255	-.255	-.215	.554	.587	1.000#
+.080	.096	.094	-.017	.151	.141	-.074	-.111	.016	1.000#
+.061	.028	-.035	-.058	-.051	-.003	-.040	-.040	-.018	.284	1.000#
+.113	.174	.059	.063	.138	.044	-.119	-.073	-.084	.563	.379	1.000 '
+COVAR <- lavaan:::getCov(CORRREL, sds = SDS, names = c("work1", "work2", "work3",#
+                       "happy", "mood1", "mood2", "perform1", "perform2",#
+                       "approval", "beliefs", "selftalk", "imagery"))
+COVAR
+MeetModel <- '#
+JobSatisfation =~ work1 + work2 + work3#
+￼Wellbeing =~ happy + mood1 + mood2#
+DysThinking =~ perform1 + perform2 + approval#
+ConThinking =~ beliefs + selftalk + imagery#
+happy ~~ mood2#
+'#
+#
+# fitten model#
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+# meetmodel#
+MeetModel <- '#
+	JobSatisfation =~ work1 + work2 + work3#
+	￼Wellbeing =~ happy + mood1 + mood2#
+	DysThinking =~ perform1 + perform2 + approval#
+	ConThinking =~ beliefs + selftalk + imagery#
+	happy ~~ mood2#
+'
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+# converteer naar covariantie-matrix met variabele namen#
+COVAR <- lavaan:::getCov(CORRREL, sds = SDS, names = c("work1", "work2", "work3",#
+																"happy", "mood1", "mood2", "perform1", "perform2",#
+																"approval", "beliefs", "selftalk", "imagery"))
+COVAR
+MeetModel <- '#
+	JobSatisfation =~ work1 + work2 + work3#
+	￼Wellbeing =~ happy + mood1 + mood2#
+	DysThinking =~ perform1 + perform2 + approval#
+	ConThinking =~ beliefs + selftalk + imagery#
+	happy ~~ mood2#
+'#
+#
+# fitten model#
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+MeetModel
+COVAR
+COVAR <- lavaan:::getCov(CORRREL, sds = SDS, names = c("work1", "work2", "work3",#
+																"happy", "mood1", "mood2", "perform1", "perform2",#
+																"approval", "beliefs", "selftalk", "imagery"))
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+MeetModel <- '#
+JobSat =~ work1 + work2 + work3#
+WellB =~ happy + mood1 + mood2#
+DysTh =~ perform1 + perform2 + approval#
+ConTh =~ beliefs + selftalk + imagery#
+#
+happy ~~ mood2#
+'
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+FITM
+summary(FITM, fit.measures=TRUE, standardized=TRUE)
+MeetModel <- '#
+JobSat =~ work1 + work2 + work3#
+WellB =~ happy + mood1 + mood2#
+DysTh =~ perform1 + perform2 + approval#
+ConTh =~ beliefs + selftalk + imagery#
+happy ~~ mood2#
+'
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+summary(FITM, fit.measures=TRUE, standardized=TRUE)
+?sem
+MeetModel <- '#
+JobSat =~ work1 + work2 + work3#
+WellB =~ happy + mood1 + mood2#
+DysTh =~ perform1 + perform2 + approval#
+ConTh =~ beliefs + selftalk + imagery#
+#
+# Correlated residuals#
+happy ~~ mood2#
+#
+# regressies#
+DysTh ~ ConTh#
+WellB ~ DysTh + ConTh#
+JobSat ~ DysTh + ConTh + WellB#
+'
+FITM <- cfa(MeetModel, sample.cov=COVAR, sample.nobs=263)
+summary(FITM, fit.measures=TRUE, standardized=TRUE)
+FITM <- sem(MeetModel, sample.cov=COVAR, sample.nobs=263)
+summary(FITM, fit.measures=TRUE, standardized=TRUE)
+sem(mimic)
+sem$mimic
+data.Kerckhoff <- read.table(#
+          "http://www.da.ugent.be/datasets/kerckhoff1974.dat",#
+          header=TRUE)
+model1 <- '#
+Grades ~ Intelligence + Siblings + FatherEd + FatherOcc#
+EducExp ~ Intelligence + Siblings + FatherEd + FatherOcc #
+OccupAsp ~ Intelligence + Siblings + FatherEd + FatherOcc#
+'
+fit1 <- sem(model1, data = data.Kerckhoff)
+fit1
+fit1 <- sem(model1, data = data.Kerckhoff,fixed.x=TRUE)
+summary(fit1, fit.measures = TRUE)
+fit1 <- sem(model1, data = data.Kerckhoff,fixed.x=FALSE)
+summary(fit1, fit.measures = TRUE)
+.65.70.50.85
+0.65+.7+.85
+.7+.85
+1.55+.05
+.6+1.6
+-2.552/4
+0.8*0.8
+sqrt(0.64)
+sqrt(0.8)
+sqrt(0.72)
+sqrt(0.9)
+sqrt(9)
+.7*.7
+sqrt(.49)
+likelihood <- ((5.47*29.96)/(1+(5.47*29.96)))*(1/(1+(5.47*0.18)))*((5.47*0.18)/(1+(5.47*0.18)));likelihood
+# Afronden op:#
+roundDig <- 3#
+roundOff <- function(x,digits=7) round(x+0.000000000000001,digits)#
+options(digits=7)
+likelihood <- roundOff(((5.47*29.96)/(1+(5.47*29.96)))*(1/(1+(5.47*0.18)))*((5.47*0.18)/(1+(5.47*0.18))),roundDig);likelihood
+likelihood <- roundOff(((5.47*29.96)/(1+(5.47*29.96)))*(1/(1+(5.47*0.18)))*(1/(1+(5.47*0.18))),roundDig);likelihood
+### VRAAG 14: vraag likelihood#
+ep <- c(1, 0.25,1,0.35)#
+x <- c(1,1,0,1)#
+la <- c(1,0.7,-0.8,2.5)#
+# 1.0#
+(lamd1 <- round(exp(1.7*1*la[1]),3))#
+(prob <- #
+(ep[1]*lamd1)^x[1]/(1+(ep[1]*lamd1))*#
+(ep[2]*lamd1)^x[2]/(1+(ep[2]*lamd1))*#
+(ep[3]*lamd1)^x[3]/(1+(ep[3]*lamd1))*#
+(ep[4]*lamd1)^x[4]/(1+(ep[4]*lamd1)))#
+#
+(lamd2<- round(exp(1.7*1*la[2]),3))#
+(prob <- #
+(ep[1]*lamd2)^x[1]/(1+(ep[1]*lamd2))*#
+(ep[2]*lamd2)^x[2]/(1+(ep[2]*lamd2))*#
+(ep[3]*lamd2)^x[3]/(1+(ep[3]*lamd2))*#
+(ep[4]*lamd2)^x[4]/(1+(ep[4]*lamd2)))#
+#
+(lamd3<- round(exp(1.7*1*la[3]),3))#
+(prob <- #
+(ep[1]*lamd3)^x[1]/(1+(ep[1]*lamd3))*#
+(ep[2]*lamd3)^x[2]/(1+(ep[2]*lamd3))*#
+(ep[3]*lamd3)^x[3]/(1+(ep[3]*lamd3))*#
+(ep[4]*lamd3)^x[4]/(1+(ep[4]*lamd3)))#
+#
+(lamd4<- round(exp(1.7*1*la[4]),3))#
+(prob <- #
+(ep[1]*lamd4)^x[1]/(1+(ep[1]*lamd4))*#
+(ep[2]*lamd4)^x[2]/(1+(ep[2]*lamd4))*#
+(ep[3]*lamd4)^x[3]/(1+(ep[3]*lamd4))*#
+(ep[4]*lamd4)^x[4]/(1+(ep[4]*lamd4)))#
+#
+var(c(8,4,3,6))#
+var(c(7,2,1,4))#
+var(c(10,9,9,8))#
+var(c(2,3,1,2))
+### VRAAG 8: #
+par(mfrow=c(1,1))#
+par(mar=c(4.5,5.5,0.5,0.5))#
+theta <- seq(-20, 25, by=0.01)#
+ksi1 <- 1.7*0.15*theta#
+sigma1 <- 1.7*5*0.15#
+ksi2 <- ksi1#
+sigma2 <- 1.7*0*0.15#
+ksi3 <- 1.7*0.3*theta#
+sigma3 <- 1.7*0.3*5#
+#
+it1 <- exp(ksi1 -sigma1)/(1+exp(ksi1 -sigma1))#
+it2 <- exp(ksi2 -sigma2)/(1+exp(ksi2 -sigma2))#
+it3 <- exp(ksi3 -sigma3)/(1+exp(ksi3 -sigma3))#
+#
+plot(theta, it1, type="l", axes=FALSE, xlab="", ylab="", lwd=2, ylim=c(0,1))#
+lines(theta, it2, lwd=2, lty=2)#
+lines(theta, it3, lwd=2, lty=3)#
+lines(rep(5, times=301), seq(-1,0.5,0.005), lty=1, lwd=1.5, col="grey")#
+lines(seq(-25,5,0.05),rep(0.5, times=601), lty=1, lwd=1.5, col="grey")#
+lines(rep(0, times=301), seq(-1,0.5,0.005), lty=1, lwd=1.5, col="grey")#
+#
+axis(2, at=c(0,0.25,0.5,0.75,1), lwd=2, cex.axis=1.5)#
+axis(1, at=c(-20,0, 5, 8, 25), labels=c(expression(-infinity), 0,5, 8, expression(+infinity) ), lwd=2, cex.axis=2)#
+title(ylab=expression(P(i~I~theta[v])), xlab=expression(theta[v]), cex.lab=2)#
+abline(v=8, lwd=1.5, col="grey" )#
+#abline(v=0, h=0.17799, lwd=0.8, lty=2, col="red")#
+box(lwd=2)#
+legend(-20, 0.95, legend=c("item 1", "item 2", "item 3"), lty=c(1,2,3), cex=2, lwd=2, col=1)#
+#
+ksi1 <- 1.7*0.15*8#
+sigma1 <- 1.7*5*0.15#
+ksi2 <- ksi1#
+sigma2 <- 1.7*0*0.15#
+ksi3 <- 1.7*0.3*theta#
+sigma3 <- 1.7*0.3*5#
+#
+it1 <- exp(ksi1 -sigma1)/(1+exp(ksi1 -sigma1)); it1#
+it2 <- exp(ksi2 -sigma2)/(1+exp(ksi2 -sigma2)); it2#
+it3 <- exp(ksi3 -sigma3)/(1+exp(ksi3 -sigma3))#
+#
+0.255/1.7
+# In 1 stap:#
+	likelihood <- (1/(1+(5.47*5.47)))*((5.47*0.18)/(1+(5.47*0.18)))*(1/(1+(5.47*0.18)))#
+	roundOff(likelihood,roundDig)#
+# Tussenstappen:#
+	N1 <- roundOff((1/(1+(5.47*5.47))),roundDig)#
+	N2 <- roundOff(((5.47*0.18)/(1+(5.47*0.18))),roundDig)#
+	N3 <- roundOff((1/(1+(5.47*0.18))),roundDig)#
+	roundOff(N1*N2*N3,roundDig)					# Idem
+likelihood <- ((5.47*29.96)/(1+(5.47*29.96)))*(1/(1+(5.47*0.18)))*(1/(1+(5.47*0.18)))
+roundOff(likelihood,roundDig)
+N1 <- roundOff((((5.47*29.96)/(1+(5.47*29.96))),roundDig)
+((5.47*29.96)/(1+(5.47*29.96)))
+N1 <- roundOff(((5.47*29.96)/(1+(5.47*29.96))),roundDig)
+N2 <- roundOff((1/(1+(5.47*0.18))),roundDig)
+N3 <- roundOff((1/(1+(5.47*0.18))),roundDig)
+roundOff(N1*N2*N3,roundDig)					# Idem
+# Input matrix:#
+mat <- matrix(c(.30,.62,.80,.85,1,#
+	.11,.40,.91,1,1,#
+	0,.35,74,86,1),#
+	byrow=TRUE,ncol=5)
+mat
+Z_matrix <- matrix(c(-.524,.305,.842,1.036,NA,#
+			-1.227,-.253,1.341,NA,NA,#
+			-NA,-.385,.643,1.080,NA),#
+			byrow=TRUE,ncol=5)
+diff <- Z_matrix[,c(2:4)]-Z_matrix[,c(1:3)]
+roundOff(colMeans(diff,na.rm=TRUE),roundDig)
+# 1: not using Inf#
+		Z_matrix <- matrix(c(-.524,.305,.842,1.036,1,		# Error here#
+				-1.227,-.253,1.341,1,1,#
+				0,-.385,.643,1.080,1),#
+				byrow=TRUE,ncol=5)#
+		diff <- Z_matrix[,c(2:4)]-Z_matrix[,c(1:3)]#
+		roundOff(colMeans(diff,na.rm=TRUE),roundDig)#
+	#2: Wrong calculation#
+		Z_matrix <- matrix(c(-.524,.305,.842,1.036,0,#
+				-1.227,-.253,1.341,0,0,#
+				0,-.385,.643,1.080,0),#
+				byrow=TRUE,ncol=5)#
+		diff <- Z_matrix[,c(1:3)]-Z_matrix[,c(2:4)]			# error here#
+		roundOff(colMeans(diff,na.rm=TRUE),roundDig)#
+	#3: using infinity in calculating average (e.g divide by 3 instead of 2)#
+		Z_matrix <- matrix(c(-.524,.305,.842,1.036,NA,#
+					-1.227,-.253,1.341,NA,NA,#
+					-NA,-.385,.643,1.080,NA),#
+					byrow=TRUE,ncol=5)#
+		diff <- Z_matrix[,c(2:4)]-Z_matrix[,c(1:3)]#
+			id <- is.na(as.vector(diff))#
+			diff[id] <- 0#
+		roundOff(colMeans(diff,na.rm=TRUE),roundDig)					# error here
+mat <- matrix(c(.30,.62,.80,.85,1,#
+	.05,.40,.91,1,1,#
+	0,.35,74,86,1),#
+	byrow=TRUE,ncol=5)
+mat
+Z_matrix <- matrix(c(-.524,.305,.842,1.036,NA,#
+			-1.645,-.253,1.341,NA,NA,#
+			-NA,-.385,.643,1.080,NA),#
+			byrow=TRUE,ncol=5)#
+#
+diff <- Z_matrix[,c(2:4)]-Z_matrix[,c(1:3)]#
+roundOff(colMeans(diff,na.rm=TRUE),roundDig)
+mat <- matrix(c(.30,.62,.80,.95,1,#
+	.05,.40,.91,1,1,#
+	0,.35,74,86,1),#
+	byrow=TRUE,ncol=5)#
+#
+Z_matrix <- matrix(c(-.524,.305,.842,1.645,NA,#
+			-1.645,-.253,1.341,NA,NA,#
+			-NA,-.385,.643,1.080,NA),#
+			byrow=TRUE,ncol=5)#
+#
+diff <- Z_matrix[,c(2:4)]-Z_matrix[,c(1:3)]#
+roundOff(colMeans(diff,na.rm=TRUE),roundDig)
+# 1: not using Inf#
+		Z_matrix <- matrix(c(-.524,.305,.842,1.645,1,		# Error here#
+				-1.645,-.253,1.341,1,1,#
+				0,-.385,.643,1.080,1),#
+				byrow=TRUE,ncol=5)#
+		diff <- Z_matrix[,c(2:4)]-Z_matrix[,c(1:3)]#
+		roundOff(colMeans(diff,na.rm=TRUE),roundDig)
+Z_matrix <- matrix(c(-.524,.305,.842,1.645,0,#
+				-1.645,-.253,1.341,0,0,#
+				0,-.385,.643,1.080,0),#
+				byrow=TRUE,ncol=5)#
+		diff <- Z_matrix[,c(1:3)]-Z_matrix[,c(2:4)]			# error here#
+		roundOff(colMeans(diff,na.rm=TRUE),roundDig)
+#3: using infinity in calculating average (e.g divide by 3 instead of 2)#
+		Z_matrix <- matrix(c(-.524,.305,.842,1.645,NA,#
+					-1.645,-.253,1.341,NA,NA,#
+					-NA,-.385,.643,1.080,NA),#
+					byrow=TRUE,ncol=5)#
+		diff <- Z_matrix[,c(2:4)]-Z_matrix[,c(1:3)]#
+			id <- is.na(as.vector(diff))#
+			diff[id] <- 0#
+		roundOff(colMeans(diff,na.rm=TRUE),roundDig)					# error here
+mat <- matrix(c(.30,.62,.80,.95,1,#
+	.05,.40,.91,1,1,#
+	0,.35,74,86,1),#
+	byrow=TRUE,ncol=5)
+0.49**2
+.35*.8
+.35-.28
+.8-.28
+.52/.07
+sqrt(0.49)
+##################
+DataTabel.Trans <- t(matrix(c(12,1,3,4,9,6,2,3,14,3,5,2,2,5,4,4,2,4,5,4,11,3,4,4),ncol=6));DataTabel.Trans#
+DataTabel <- t(DataTabel.Trans)#
+#
+## Correct item#
+scoreItem1 <- DataTabel[1,]#
+totaalPerSubject <- colSums(DataTabel)#
+totaalMinItem <- totaalPerSubject-scoreItem1#
+GemItem <- roundOff(mean(scoreItem1),roundDig)
+# Afronden op:#
+roundDig <- 3#
+roundOff <- function(x,digits=7) round(x+0.000000000000001,digits)#
+options(digits=7)
+##################
+DataTabel.Trans <- t(matrix(c(12,1,3,4,9,6,2,3,14,3,5,2,2,5,4,4,2,4,5,4,11,3,4,4),ncol=6));DataTabel.Trans#
+DataTabel <- t(DataTabel.Trans)#
+#
+## Correct item#
+scoreItem1 <- DataTabel[1,]#
+totaalPerSubject <- colSums(DataTabel)#
+totaalMinItem <- totaalPerSubject-scoreItem1#
+GemItem <- roundOff(mean(scoreItem1),roundDig)
+totaalPerSubject
+totaalMinItem
+GemItem
+GemRestTot <- roundOff(mean(totaalMinItem),roundDig)
+GemRestTot
+scoreItem1
+GemRestTot
+teller <- roundOff(sum((scoreItem1-GemItem)*(totaalMinItem-GemRestTot)),roundDig)#
+noemer <- roundOff(sqrt((sum((scoreItem1-GemItem)^2))*sum((totaalMinItem-GemRestTot)^2)),roundDig)
+teller
+noemer
+roundOff(teller/noemer,roundDig)
+29+28
+67+18
+18*5
+8*4
+8*5
+18*7
+9*8
+5*9
+3+8+21+48+90+120+126+72+45+10
+543/100
+1.05/100
+1.5/100
+likelihood <- ((5.47*29.96)/(1+(5.47*29.96)))*(1/(1+(5.47*0.18)))*(1/(1+(5.47*0.18)))
+roundOff(likelihood,roundDig)
+2/2
+.8*4
+3.2/0.2
+16/21
+12/17
+.8*3
+2.4/0.2
+exp(0)
+615.8/3
+3.211+1.3
+4.511/18
+.3*.8
+200+160+90+50
+220
+220+170+90+20
+50+100+150+120+80
+500/4
+0.5*0.5*0.5*0.5
+# G berekenen#
+nb <- 2#
+nv <- 10#
+SigObj <- 0.397#
+SigSb <- 0.067#
+SigSv <- 0.314#
+SigSvb <- 0.224#
+#
+SigRelMet <- (SigSb/nb) + ((SigSv+SigSvb)/(nv*nb))#
+G <- (SigObj)/(SigObj+SigRelMet);G#
+#
+# G berekenen voor aantal vragen V = 9,8,7,6,5,4,3,2,1#
+nv <- c(10:1)#
+#
+SigRelMet <- (SigSb/nb) + ((SigSv+SigSvb)/(nv*nb))#
+G <- (SigObj)/(SigObj+SigRelMet);G
+.5*.5
+sqrt(.25)
+exp(-2)
+exp(0.1)
+exp(-0.1)
+exp(-10)
+exp(1)
+exp(1/5)
+exp(-5)
+exp(-2/5)
+0.175+0.15
+0.35/2
+90/490
+490-401
+# Reset working directory#
+rm(list=ls())#
+gc(verbose = FALSE)#
+# Set WD#
+wd <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/Analyses/Faces/Unconditional"#
+setwd(wd)#
+#
+# Data wd#
+datawd <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/Faces/Scenario6/"#
+#
+# Save objects wd#
+saveobjWD <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/Faces/Unconditional"#
+# Load in libraries#
+library(lattice)#
+library(gridExtra)#
+library(oro.nifti)#
+library(ggplot2)#
+library(reshape2)#
+library(RColorBrewer)#
+library(Hmisc)#
+library(fslr)#
+source('~/Dropbox/PhD/PhDWork/Meta\ Analysis/R\ Code/Studie_FixRan/FixRanStudyGit.git/Development/functions.R')#
+	# Print which libraries are needed#
+	print("Need packages: oro.nifti, fslr, lattice, ggplot2, reshape2, RColorBrewer, gridExtra and the functions.R file")#
+# Dimension of the brains#
+DIM <- c(53,63,46)#
+#
+# Number of runs#
+NRUNS <- 42#
+# Number of steps#
+NSTEP <- 70#
+# Load Center information#
+load('/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/IMAGEN/IMAGEN/FACES/Renamed/OurIDsFace')#
+head(OurIDsFace)
+load(paste(saveobjWD,'/MatrixCorrelationFace',sep=''))
+quartz.options(width=18,height=12)#
+## Prepare matrix#
+Correlation.tmp <- matrix(MatrixCorrelation,ncol=1)#
+	sampleSize <- rep(seq(10,700,by=10),NRUNS)#
+Correlation <- data.frame('PearsonCorr' = Correlation.tmp, 'size' = sampleSize)#
+#
+# Variables for plotting#
+subjBreak <- c(seq(0,100,by=20),seq(100,700,by=50))#
+##################
+## ggplot: points#
+##################
+ggplot(Correlation, aes(x=factor(sampleSize),y=PearsonCorr)) +#
+	geom_point(colour='#006d2c',size=1.3) +#
+	scale_x_discrete(breaks=subjBreak, name="Sample size")+#
+	scale_y_continuous(name='Pearson Correlation')+#
+	theme(plot.title = element_text(lineheight=.2, face="bold")) +#
+	ggtitle('Correlation between t-maps of increasing sample size (N=42 per sample size).')#
+#
+##################
+## ggplot: boxplots#
+##################
+ggplot(Correlation, aes(x=factor(sampleSize), y=PearsonCorr)) +#
+	geom_boxplot(fill='#006d2c') +#
+	scale_x_discrete(breaks=subjBreak, name="Sample size")+#
+	scale_y_continuous(name='Pearson Correlation')+#
+	theme(plot.title = element_text(lineheight=.2, face="bold")) +#
+	ggtitle('Correlation between t-maps of increasing sample size (N=42 per sample size).')
+Correlation
+aggregate(PearsonCorr~size, data=Correlation,mean,na.rm=TRUE)
+1.96*0.0166/0.95
+1.96*0.0166/0.05
+((1.96*0.0166)/0.349*.05)^2
+0.349*.05
+sqrt(209)
+(4^2/2^2)
+(4/2)^2
+((1.96*0.0166)/sqrt(209))
+sqrt(((1.96*0.0166)/209))
+sqrt(((1.96*0.0166)^2/209))
+delta <- 0.002250562
+(1.96*0.0166/delta)^2
+delta/5*100
+0.349/100*5
+0.349*.05
+0.01745/2
+delta
+(0.349+(1.96*0.0166))
+(0.349+(1.96*0.0166))-(0.349-(1.96*0.0166))
+((2*sqrt(0.95*0.05))/0.05)^2
+2*.38
+?pt
+qnorm((0.95/2))
+qnorm((1-0.95/2))
+pnorm((1-0.95/2))
+qnorm(0.05/2)
+1-.05
+.05/2
+1-.025
+qnorm(.975)
+qnorm(0.025)
+((2*1.96sqrt(0.95*0.05))/0.05)^2
+((2*1.96*sqrt(0.95*0.05))/0.05)^2
+((2*1.96*sqrt(0.95*0.05))/0.0025)^2
+((2*1.96*sqrt(0.95*0.05))/0.001)^2
+((2*1.96*sqrt(0.95*0.05))/0.01)^2
+delta
+sqrt(.0166)
+-1.96*0.128841
+0.00225*2
+0.05/2
+0.005/2
+0.001/2
+(1.96*0.0166/(0.001/2))^2
+sqrt(((1.96*0.0166)^2/5236))
+0.0004496394/100*1
