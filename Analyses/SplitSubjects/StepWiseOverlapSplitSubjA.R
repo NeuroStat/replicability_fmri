@@ -34,6 +34,7 @@ rm(list=ls())
 
 # Set WD
 wd <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/FLAME/Scenario6"
+wd <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/SplitSubjects/ScenarioA_ReDo"
 setwd(wd)
 
 
@@ -46,7 +47,7 @@ library(reshape2)
 library(RColorBrewer)
 library(Hmisc)
 library(fslr)
-source('~/Dropbox/PhD/PhDWork/Meta\ Analysis/R\ Code/Studie_FixRan/FixRanStudyGit.git/Development/functions.R')
+#source('~/Dropbox/PhD/PhDWork/Meta\ Analysis/R\ Code/Studie_FixRan/FixRanStudyGit.git/Development/functions.R')
 	# Print which libraries are needed
 	print("Need packages: oro.nifti, fslr, lattice, ggplot2, reshape2, RColorBrewer, gridExtra and the functions.R file")
 
@@ -54,8 +55,8 @@ source('~/Dropbox/PhD/PhDWork/Meta\ Analysis/R\ Code/Studie_FixRan/FixRanStudyGi
 # Dimension of the brains
 DIM <- c(53,63,46)
 
-# Number of runs (so far)
-NRUNS <- 42
+# Number of runs
+NRUNS <- 50
 # Number of steps
 NSTEP <- 70
 
@@ -150,12 +151,12 @@ MatrixOverlap[is.nan(MatrixOverlap)] <- 0
 
 
 ## Save objects
-save(MatrixOverlap,file=paste(wd,'/MatrixOverlapSplitSubj6',sep=''))
-save(PercAct,file=paste(wd,'/PercActSplitSubj6',sep=''))
+save(MatrixOverlap,file=paste(wd,'/MatrixOverlapSplitSubj6_ReDo',sep=''))
+save(PercAct,file=paste(wd,'/PercActSplitSubj6_ReDo',sep=''))
 
 # Or load them in
-load(paste(wd,'/MatrixOverlapSplitSubj6',sep=''))
-load(paste(wd,'/PercActSplitSubj6',sep=''))
+load(paste(wd,'/MatrixOverlapSplitSubj6_ReDo',sep=''))
+load(paste(wd,'/PercActSplitSubj6_ReDo',sep=''))
 
 
 ##
@@ -263,7 +264,7 @@ ggplot(obs, aes(x=factor(size), y=count))+
 	perc <- matrix(PercAct,ncol=1)
 OverPerc <- data.frame('Value' = rbind(Overlap.tmp,perc),
 		'Size' = rep(sampleSize,2), 
-		'Type' = c(rep('Overlap',2940),rep('Percentage',2940)))
+		'Type' = c(rep('Overlap',3500),rep('Percentage',3500)))
 	OverPerc$Type <- as.factor(OverPerc$Type)
 	OverPerc$Value <- as.numeric(OverPerc$Value)
 
