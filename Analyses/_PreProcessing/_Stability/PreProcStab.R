@@ -38,6 +38,9 @@
 # Location of raw data: not included in Github folder (too large)
 RawDat <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/Stability"
 
+# Save intermediate results
+SaveLoc <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
+
 # Load in libraries
 library(tidyverse)
 library(magrittr)
@@ -131,7 +134,7 @@ for(i in 1:NRUNS){
     #########################
     # We have data files from group 1 and group 2: read in cluster index + size
     # then bind to ClustSize data frame
-    ClustSize <- bind_rows(
+    ClustSize %<>% bind_rows(
       ReadClusters(location = RawDat, run = i, step = j, group = 1),
       ReadClusters(location = RawDat, run = i, step = j, group = 2))
 
@@ -218,36 +221,80 @@ for(i in 1:NRUNS){
 # Therefore, I read in one masked nifti image and sum the amount of 1's
 NumMask <- sum(readNIfTI(paste(RawDat, '/Run_1/Step_1/Group1/masked.nii.gz', sep = ''))[,,])
 
+# Add this to ClustSize dataframe
+ClustSize %<>% mutate(NumMask = NumMask)
 
 
+##
+###############
+### Save intermediate results
+###############
+##
 
-# # Size of the final data frames
-# SizDat <- NSTEP * NRUNS * NGROUP
-# # Empty data frames
-# VarClustSize <- AvgClustSize <- data.frame('Value' = rep(NA, SizDat),
-#                  'STEP' = rep(NA, SizDat),
-#                  'RUN' = rep(NA, SizDat),
-#                  'GROUP' = rep(NA, SizDat)) %>% as.tibble()
+
+saveRDS(ClustSize, paste(SaveLoc,'/ClustSize.rda', sep = ''))
+saveRDS(numUniqClust, paste(SaveLoc,'/numUniqClust.rda', sep = ''))
+saveRDS(propOverVox, paste(SaveLoc,'/propOverVox.rda', sep = ''))
+
 
 # Analysis
 ClustSize %>%
   group_by(step) %>%
-  summarize(amount = max(index),
+  summarise(amount = max(index),
             avgSize = mean(size),
             varSize = var(size),
             sdSize = sd(size)) %>%
   mutate(SampleSize = step * 10)
 
-# With graphs
+# Variance (SD) of largest cluster
 ClustSize %>%
+  group_by(step, run, group) %>%
+  # Filter only largest cluster
+  top_n(n=1, size) %>%
+  ungroup() %>%
+  # now calculate variance
   group_by(step) %>%
-  summarize(amount = max(index),
+  summarise(amount = max(index),
             avgSize = mean(size),
             varSize = var(size),
             sdSize = sd(size)) %>%
   mutate(SampleSize = step * 10) %>%
   ggplot(., aes(x = SampleSize, y = sdSize)) + 
+  geom_line() + 
+  scale_x_continuous('Sample size') + 
+  scale_y_continuous('Standard deviation of largest clusters') +
+  theme_bw()
+
+
+# Variance of largest clusters, but first with group mean centering
+ClustSize %>%
+  group_by(step, run, group) %>%
+  # Filter only largest cluster
+  top_n(n=1, size) %>%
+  ungroup() %>%
+  group_by(step) %>%
+  # Average cluster size per sample size (over runs and groups)
+  summarise(avgSize = mean(size)) %>% 
+  # bind to data again
+  right_join(., ClustSize, by = 'step') %>% 
+  # again, filter on largest clusters
+  group_by(step, run, group) %>%
+  top_n(n=1, size) %>%
+  # Now do group mean centering
+  mutate(GrCent = size - avgSize) %>% 
+  ungroup() %>%
+  # group by step
+  group_by(step, NumMask) %>% 
+  # calculate variance of cluster size
+  summarise(varSize = var(GrCent),
+            sdSize = sd(GrCent)) %>%
+  # Add sample size info
+  mutate(SampleSize = step * 10) %>%
+  ungroup() %>%
+  ggplot(., aes(x = SampleSize, y = sdSize)) + 
   geom_line()
+
+
 
 # Average cluster size within one study
 ClustSize %>%
@@ -299,6 +346,36 @@ ClustSize %>%
 
 # Average number of unique clusters
 numUniqClust %>% 
+  # Gather nunique and total clusters in one column
+  gather(key = 'cluster', value = 'count', 1:2) %>%
+  mutate(SampleSize = step * 10) %>%
+  group_by(cluster) %>% 
+  # Plot
+  ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
+  geom_smooth(aes(colour = cluster))
+
+
+# Average number of overlapping clusters
+numUniqClust %>% 
+  # Take overlapping clusters instead of unique clusters
+  mutate(OverlClust = TotClus - UniClus) %>%
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,5) %>%
+  mutate(SampleSize = step * 10) %>%
+  filter(cluster != 'UniClus') %>%
+  group_by(cluster) %>% 
+  # Plot
+  ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
+  geom_smooth(aes(colour = cluster), size = 1.1) +
+  scale_x_continuous('Sample Size') +
+  scale_y_continuous('Count (clusters)') +
+  scale_color_manual('', values = c('#1b9e77','#d95f02'),
+                        labels = c('Overlapping clusters',
+                          'Total amount of clusters')) + 
+  theme_bw() +
+  theme(legend.position = 'bottom') 
+
+
 
 # Average proportion of overlapping voxels within the clusters
 propOverVox %>%
@@ -313,3 +390,5 @@ propOverVox %>%
   scale_x_continuous('Sample size') + 
   scale_y_continuous('Average proportion of overlapping voxels') +
   theme_bw()
+
+
