@@ -40,6 +40,7 @@ LocIntRes <- '../_IntData/'
 # Load in libraries
 library(tidyverse)
 library(magrittr)
+library(cowplot)
 library(lattice)
 library(gridExtra)
 library(oro.nifti)
@@ -97,7 +98,7 @@ AvgClustS <- ClustSize %>%
   ungroup() %>%
   ggplot(., aes(x = SampleSize, y = AWCS)) + 
   geom_point(size = 0.75) +
-  geom_smooth(method = 'loess') + 
+  geom_smooth(method = 'loess', colour = '#8856a7') + 
   scale_x_continuous('Sample size') + 
   scale_y_continuous('Average cluster size within one fMRI study') +
   theme_bw()
@@ -137,7 +138,8 @@ PropLargGroupC
 # Here we focus on the largest cluster in each group.
 # We measure its size and then calculate the proportion it 
 # overlaps with in the masked brain.
-PropLargC <- ClustSize %>%
+PropLargC <- 
+  ClustSize %>%
   # First select largest cluster per group (and step, run)
   group_by(step, run, group, NumMask) %>%
   top_n(n = 1, size) %>%
@@ -149,21 +151,23 @@ PropLargC <- ClustSize %>%
   ungroup() %>%
   ggplot(., aes(x = SampleSize, y = PercClust, group = factor(group))) + 
   geom_point(aes(colour = factor(group)), size = 0.75) +
-  geom_smooth(method = 'loess') + 
+  geom_smooth(method = 'loess', colour = '#8856a7') + 
   scale_x_continuous('Sample size') + 
-  scale_y_continuous('Proportion of all masked voxels in largest cluster') +
+  scale_y_continuous('Proportion of all masked voxels within largest cluster') +
   scale_colour_manual('Replication', labels = c('1','2'), values = c('#045a8d',
                         '#74a9cf')) +
   theme_bw() + 
   # Increase size in legend
-  guides(colour = guide_legend(override.aes = list(size=6))) +
-  theme(legend.position = 'bottom')
+  guides(colour = guide_legend(override.aes = list(size=4))) +
+  theme(legend.position = 'bottom',
+        axis.title.y = element_text(size = 9))
 PropLargC
 
 
 # Variance (SD) in terms of amount of voxels of largest cluster
 # Calculated over runs and groups
-SDClustSize <- ClustSize %>%
+SDClustSize <- 
+  ClustSize %>%
   group_by(step, run, group) %>%
   # Filter only largest cluster
   top_n(n=1, size) %>%
@@ -176,10 +180,17 @@ SDClustSize <- ClustSize %>%
             sdSize = sd(size)) %>%
   mutate(SampleSize = step * 10) %>%
   ggplot(., aes(x = SampleSize, y = sdSize)) + 
-  geom_line(size = 0.7) + 
+  geom_line(size = 0.2) + 
   scale_x_continuous('Sample size') + 
-  scale_y_continuous('Standard deviation of size of largest clusters') +
-  theme_bw()
+  scale_y_continuous('Standard deviation of number of voxels in largest clusters') +
+  theme_bw() + 
+  theme(axis.title.x = element_text(size = 5),
+        axis.title.y = element_text(size = 5),
+        axis.text = element_text(size = 4),
+        axis.ticks = element_line(size = 0.1),
+        panel.border = element_blank(),
+        panel.grid.major = element_line(size = 0.1),
+        panel.grid.minor = element_line(size = 0.1))
 SDClustSize
 
 
@@ -233,15 +244,39 @@ UnionCluster <- propOverVox %>%
   ungroup() %>%
   ggplot(., aes(x = SampleSize, y = propOver)) + 
   geom_point(size = 0.75) +
-  geom_smooth(method = 'loess') + 
+  geom_smooth(method = 'loess', colour = '#8856a7') + 
   scale_x_continuous('Sample size') + 
   scale_y_continuous('Union of overlapping clustered voxels') +
   theme_bw()
+UnionCluster
 
 
+##
+###############
+### Combine plots
+###############
+##
 
 
+# Combine AvgClustS and PropLargC
+plot_grid(AvgClustS, PropLargC, labels = c("A", "B"), nrow = 1, align = "h",
+          axis = 'b')
+ggsave(filename = paste0(getwd(), '/clusterSizes.png'),
+       plot = ggplot2::last_plot(),
+       width = 20, height = 14, units = 'cm', scale = 0.9)
 
 
+# Combine AvgClustS, PropLargC, OverlClust1Vox and UnionCluster
+plot_grid(AvgClustS, PropLargC, OverlClust1Vox, UnionCluster,
+          labels = c("A", "B", "C", "D"), nrow = 2, align = "hv",
+          axis = 'tblr')
+ggsave(filename = paste0(getwd(), '/clusterStab.png'),
+       plot = ggplot2::last_plot(),
+       width = 20, height = 24, units = 'cm', scale = 1)
 
+
+# Save the SD of amount of voxels in largest cluster
+ggsave(filename = paste0(getwd(), '/clusterSD.png'),
+       plot = SDClustSize, scale = 0.3)
+      # width = 12, height = 10, units = 'cm', scale = 0.7)
 
