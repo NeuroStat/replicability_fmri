@@ -355,40 +355,5 @@ numUniqClust %>%
   geom_smooth(aes(colour = cluster))
 
 
-# Average number of overlapping clusters
-numUniqClust %>% 
-  # Take overlapping clusters instead of unique clusters
-  mutate(OverlClust = TotClus - UniClus) %>%
-  # Gather clusters in one column
-  gather(key = 'cluster', value = 'count', 1,2,5) %>%
-  mutate(SampleSize = step * 10) %>%
-  filter(cluster != 'UniClus') %>%
-  group_by(cluster) %>% 
-  # Plot
-  ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
-  geom_smooth(aes(colour = cluster), size = 1.1) +
-  scale_x_continuous('Sample Size') +
-  scale_y_continuous('Count (clusters)') +
-  scale_color_manual('', values = c('#1b9e77','#d95f02'),
-                        labels = c('Overlapping clusters',
-                          'Total amount of clusters')) + 
-  theme_bw() +
-  theme(legend.position = 'bottom') 
-
-
-
-# Average proportion of overlapping voxels within the clusters
-propOverVox %>%
-  # Mutate proportion
-  mutate(propOver = OverVox/TotVox,
-         SampleSize = step * 10) %>%
-  group_by(step, run) %>%
-  ungroup() %>%
-  ggplot(., aes(x = SampleSize, y = propOver)) + 
-  geom_point(size = 0.75) +
-  geom_smooth(method = 'loess') + 
-  scale_x_continuous('Sample size') + 
-  scale_y_continuous('Average proportion of overlapping voxels') +
-  theme_bw()
 
 
