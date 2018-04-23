@@ -24,7 +24,7 @@
 # Here we read in the preprocessed data and then plot:
 # Dice overlap (adapation from Maitra)
 # Pearson correlation
-# Overlap while fixing the percentage of significant voxels 
+# Overlap while fixing the percentage of significant voxels (called adaptive thresholding)
 
 ##
 ###############
@@ -66,10 +66,11 @@ NSTEP <- 70
 MatrixOverlap <- readRDS(paste(LocIntRes,'/MaitraOverlap.rda',sep=''))
 PercAct <- readRDS(paste(LocIntRes,'/PercActMaitraOverlap.rda',sep=''))
 
-## Prepare matrix
-Overlap.tmp <- matrix(MatrixOverlap,ncol=1)
-sampleSize <- rep(seq(10,700,by=10), NRUNS)
-Overlap <- data.frame('overlap' = Overlap.tmp, 'size' = sampleSize)
+# Data with overlap using adaptive thresholding, its percentage of activated voxels
+# and the significance thresholding levels
+MatrixOverlapAdap <- readRDS(paste(LocIntRes,'/MatrixOverlapAdap.rda', sep = ''))
+PercActAdap <- readRDS(paste(LocIntRes,'/PercActAdap.rda', sep = ''))
+SignLevels <- readRDS(paste(LocIntRes,'/SignLevels.rda', sep = ''))
 
 # Variables for plotting
 subjBreak <- c(seq(0,100,by=20),seq(100,700,by=50))
@@ -87,7 +88,14 @@ quartz.options(width=18,height=12)
 #################
 ## Points for overlap with smoothed regression line
 #################
-ggplot(Overlap, aes(x=sampleSize, y = overlap)) + 
+
+# Prepare matrix
+Overlap.tmp <- matrix(MatrixOverlap,ncol=1)
+sampleSize <- rep(seq(10,700,by=10), NRUNS)
+Overlap <- data.frame('overlap' = Overlap.tmp, 'size' = sampleSize)
+
+# plot
+overlapPlot <- ggplot(Overlap, aes(x=sampleSize, y = overlap)) + 
   geom_point(size = 0.6) +
   geom_smooth(aes(x = sampleSize, y = overlap),
           method = 'loess', 
@@ -96,9 +104,7 @@ ggplot(Overlap, aes(x=sampleSize, y = overlap)) +
   scale_x_continuous(breaks=subjBreak, name="Sample size") +
   scale_y_continuous(name='Overlap') +
   theme_bw()
-
-
-
+overlapPlot
 
 #################
 ## ggplot: plot the amount of observations/sample size
@@ -107,7 +113,6 @@ ggplot(Overlap, aes(x=sampleSize, y = overlap)) +
 observations <- apply(MatrixOverlap,c(1),function(x){length(na.omit(x))})
 # put in data frame
 obs <- data.frame('count' = observations, 'size' = seq(10,700,by=10))
-
 ggplot(obs, aes(x=factor(size), y=count))+
   geom_bar(stat='identity', colour='#1f78b4',fill='#a6cee3') +
   scale_x_discrete(breaks=seq(0,700,by=50), name="sample size") +
@@ -143,7 +148,6 @@ ggplot(OverPerc, aes(x=factor(Size),y=Value)) +
 tmp <- aggregate(OverPerc,by=list(OverPerc$Size,OverPerc$Type),mean,na.rm=TRUE)
 AvgOverPerc <- tmp[,c(2:4)]
 names(AvgOverPerc) <- c('Type', 'Value', 'Size')
-
 ggplot(AvgOverPerc, aes(x=factor(Size),y=Value,group=Type)) + 
   geom_line(aes(colour=Type)) +
   geom_point(aes(colour=Type),position='identity',size=1.5) +
@@ -152,4 +156,57 @@ ggplot(AvgOverPerc, aes(x=factor(Size),y=Value,group=Type)) +
   theme(plot.title = element_text(lineheight=.2, face="bold")) +
   ggtitle('Average overlap and percentage of masked voxels active.')+
   annotate("text", y = .1, x = 50, label = paste('Correlation = ', corr,sep=''),size=5)
+
+
+
+#################
+## Points for overlap and ADAPTIVE THRESHOLDING 
+#################
+
+# Prepare the data frame for plotting
+OverlapAdapt <- data.frame('Value' = c(matrix(MatrixOverlapAdap, ncol = 1),
+                         matrix(PercActAdap, ncol = 1),
+                         matrix(SignLevels, ncol = 1)),
+             'Type' = c(rep('Overlap', NRUNS * NSTEP),
+                        rep('Percentage', NRUNS * NSTEP),
+                        rep('SignLevels', NRUNS * NSTEP)),
+             'size' = rep(sampleSize, times = 3)) %>% as.tibble()
+
+# Plot overlap, % of masked voxels being activated and significance level
+AdaptOverlap <- OverlapAdapt %>%
+  mutate(SampleSize = size) %>% 
+ggplot(., aes(x = SampleSize, y = Value, group = Type)) + 
+  geom_point(aes(colour = Type), size = 0.6, alpha = 0.75) +
+  stat_summary(aes(group = Type), fun.y = mean, 
+               geom="line", colour = 'black', size = .6) +
+  scale_color_manual('', values = c('#1b9e77','#d95f02','#7570b3'),
+                     labels = c('Overlap', '% of activated voxels', 'Significance level')) +
+  scale_y_continuous('') + 
+  scale_x_continuous('Sample size', breaks = subjBreak) +
+  theme_bw() +
+  # Increase size in legend
+  guides(colour = guide_legend(override.aes = list(size=3)),
+         alpha = guide_legend(override.aes = list(alpha = 1))) +
+  theme(legend.position = 'bottom')
+AdaptOverlap  
+
+
+##
+###############
+### Save plots
+###############
+##
+
+# Overlap plot
+ggsave(filename = paste0(getwd(), '/overlapPlot.png'),
+       plot = overlapPlot,
+       width = 20, height = 14, units = 'cm', scale = 0.9)
+
+# Adaptive overlap plot
+ggsave(filename = paste0(getwd(), '/AdaptOverlap.png'),
+       plot = AdaptOverlap,
+       width = 20, height = 14, units = 'cm', scale = 0.9)
+
+
+
 

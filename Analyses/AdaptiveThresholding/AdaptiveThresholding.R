@@ -1,5 +1,7 @@
 ####################
-#### TITLE:     Adaptive thresholding: analysis in which significance thresholding level is adapted in order to keep percentage of voxels at constant level.
+#### TITLE:     Adaptive thresholding: analysis in which significance 
+####            thresholding level is adapted in order to keep percentage 
+####            of voxels at constant level.
 #### Contents:
 ####
 #### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script/Analyses/AdaptiveThresholding
@@ -19,8 +21,9 @@
 ## We do this by starting with a starting value of significance level and then updating p-value by steps of .01.
 ## If percentage < 0.19, then increase p-value. If >.21, decrease p-value.
 
+## The data comes from the SplitSubjects script.
 
-## The data comes from scenario A in the SplitSubjects program.
+## We will directly save the intermediate results in this script!
 
 
 ##
@@ -28,15 +31,6 @@
 ### Preparation
 ###############
 ##
-
-# Reset working directory
-rm(list=ls())
-gc(verbose = FALSE)
-
-
-# Set WD
-wd <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/Analyses/AdaptiveThresholding"
-setwd(wd)
 
 
 # Load in libraries
@@ -47,35 +41,28 @@ library(ggplot2)
 library(reshape2)
 library(RColorBrewer)
 library(Hmisc)
-library(fslr)
-source('~/Dropbox/PhD/PhDWork/Meta\ Analysis/R\ Code/Studie_FixRan/FixRanStudyGit.git/Development/functions.R')
-	# Print which libraries are needed
-	print("Need packages: oro.nifti, fslr, lattice, ggplot2, reshape2, RColorBrewer, gridExtra and the functions.R file")
+library(NeuRRoStat)
 
 
-# Location of the data
-dat <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/FLAME/Scenario6'
+# Location of the (raw) data
+# This data is not stored at Github (too large)
+dat <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/SplitSubjects/ScenarioA_50'
+
+# Save intermediate results
+SaveLoc <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
 
 # Dimension of the brains
 DIM <- c(53,63,46)
-
-# Number of runs (so far)
-NRUNS <- 42
+# Number of runs
+NRUNS <- 50
 # Number of steps
 NSTEP <- 70
 
 # Seed
 set.seed(11121990)
 
-# Load Center information
-load('/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/IMAGEN/IMAGEN/IMAGEN/OurIDs')
-head(OurIDs)
-
-
 # Baseline, starting significance level
 signLevel <- 0.05
-
-
 
 ##
 ###############
@@ -85,10 +72,10 @@ signLevel <- 0.05
 
 # Adaptive Thresholding
 AdapThresholding <- function(pvals,DIM,signLevel,idMask){
-	# No adjustment for multiple testing with P-values with Benjamin & Hochberg procedure (built in R function)
+	# No adjustment for multiple testing (not reallly needed, not of interest)
 	adjPvals <- pvals
 
-	# Threshold at signLevel BH p-value: significant P-values get 1!
+	# Threshold at signLevel p-value: significant P-values get 1!
 	idP <- adjPvals <= signLevel
 	threshPval <- adjPvals
 	threshPval[!idP] <- 0
@@ -152,7 +139,6 @@ SignLevels <- array(NA,dim=c(NSTEP,NRUNS))
 SPMRun1G1 <- array(NA,dim=c(prod(DIM),NSTEP))
 SPMRun1G2 <- array(NA,dim=c(prod(DIM),NSTEP))
 
-
 # For loop over all runs
 for(i in 1:NRUNS){
 	print(paste('--------------- Run ', i,'--------------',sep=''))
@@ -177,7 +163,8 @@ for(i in 1:NRUNS){
 			imageG2[idMaskG2] <- NA
 
 		###################################################################
-		# Now that we have z-statistic images with its masks, calculate BF-adjusted p-values using baseline significance level
+		# Now that we have z-statistic images with its masks, 
+			# calculate p-values using baseline significance level
 		pvalsG1 <- 1-pnorm(imageG1)
 		pvalsG2 <- 1-pnorm(imageG2)
 
@@ -214,27 +201,6 @@ for(i in 1:NRUNS){
 		PercActAdap[j,i] <- perc
 		SignLevels[j,i] <- signLevel
 
-
-
-		###################################################################
-		# From run 1: take the thresholded maps for levelplotting
-		if(i==1){
-			assign(paste('ThrMap1_',j,sep=''),
-			levelplot(adapG1$SPM,main=paste('Group 1 analysis of step ' ,j,sep=''),
-			pretty=TRUE, col.regions = terrain.colors, xlab = 'X', ylab = 'Y',
-			xlim=c(0,DIM[1]),ylim=c(0,DIM[2]))
-			)
-			assign(paste('ThrMap2_',j,sep=''),
-			levelplot(adapG2$SPM,main=paste('Group 2 analysis of step ' ,j,sep=''),
-			pretty=TRUE, col.regions = terrain.colors, xlab = 'X', ylab = 'Y',
-			xlim=c(0,DIM[1]),ylim=c(0,DIM[2]))
-			)
-			# Activation maps
-			SPMRun1G1[,j] <- adapG1$SPM
-			SPMRun1G2[,j] <- adapG2$SPM
-		}
-
-
 		# Remove objects
 		rm(Vjt,Vt,Vj,imageG1,imageG2,sumMap,maskG1,idMaskG1,maskG2,idMaskG2,adapG1,adapG2)
 		gc()
@@ -243,36 +209,21 @@ if(i==NRUNS) print("100% done")
 }
 
 
+##
+###############
+### Save intermediate results
+###############
+##
 
-##################################################################################################################################
-## IF NEEDED TO CONVERT AN IMAGE
-RUN <- 37
-STEP <- 5
-GROUP <- 2
-df <- (STEP*10)-1
-	IMG <- readNIfTI(paste(dat,'/Run_',RUN,'/Step_',STEP,'/Group',GROUP,'/stats/zstat1.nii.gz',sep=''))[,,]
-	tval <- (sign(IMG)*(-1))*qt(pnorm(-abs(IMG)),df=df)
+# Save matrix with overlap using adaptive thresholding
+saveRDS(MatrixOverlapAdap, paste(SaveLoc,'/MatrixOverlapAdap.rda', sep = ''))
 
-	nifti.tval <- nifti(tval,dim=DIM,datatype=16)
-	writeNIfTI(nifti.tval,filename=paste(dat,'/Run_',RUN,'/Step_',STEP,'/Group',GROUP,'/stats/tstat1',sep=''),gzipped=FALSE)
-##################################################################################################################################
+# Save the percentage of activated voxels
+saveRDS(PercActAdap, paste(SaveLoc,'/PercActAdap.rda', sep = ''))
 
+# Save the significance thresholding levels
+saveRDS(SignLevels, paste(SaveLoc,'/SignLevels.rda', sep = ''))
 
-
-# Transform NaN values to 0
-MatrixOverlapAdap[is.nan(MatrixOverlapAdap)] <- 0
-
-
-
-## Save objects
-save(MatrixOverlapAdap,file=paste(wd,'/MatrixOverlapAdap',sep=''))
-save(PercActAdap,file=paste(wd,'/PercActSplitAdap',sep=''))
-save(SignLevels,file=paste(wd,'/SignLevelsAdap',sep=''))
-
-# Or load them in
-load(paste(wd,'/MatrixOverlapAdap',sep=''))
-load(paste(wd,'/PercActSplitAdap',sep=''))
-load(paste(wd,'/SignLevelsAdap',sep=''))
 
 
 ##
@@ -281,8 +232,8 @@ load(paste(wd,'/SignLevelsAdap',sep=''))
 ###############
 ##
 
+# Some plots, just for fun
 quartz.options(width=18,height=12)
-
 
 ## Prepare matrix
 Overlap.tmp <- matrix(MatrixOverlapAdap,ncol=1)
@@ -292,20 +243,15 @@ Overlap <- data.frame('overlap' = Overlap.tmp, 'size' = sampleSize)
 # Variables for plotting
 subjBreak <- c(seq(0,100,by=20),seq(100,700,by=50))
 
-
-
-
-
 #################
 ## plot the percentage of masked voxels being activated
 #################
-
 
 # Data frame with overlap and percentage
 	perc <- matrix(PercActAdap,ncol=1)
 OverPerc <- data.frame('Value' = rbind(Overlap.tmp,perc),
 		'Size' = rep(sampleSize,2),
-		'Type' = c(rep('Overlap',2940),rep('Percentage',2940)))
+		'Type' = c(rep('Overlap',3500),rep('Percentage',3500)))
 	OverPerc$Type <- as.factor(OverPerc$Type)
 	OverPerc$Value <- as.numeric(OverPerc$Value)
 
@@ -319,8 +265,6 @@ ggplot(OverPerc, aes(x=factor(Size),y=Value)) +
 	theme(plot.title = element_text(lineheight=.2, face="bold")) +
 	ggtitle('Overlap and percentage of masked voxels active.') +
 	annotate("text", y = .1, x = 60, label = paste('Correlation = ', corr,sep=''),size=5)
-
-
 
 # Calculate averages
 tmp <- aggregate(OverPerc,by=list(OverPerc$Size,OverPerc$Type),mean,na.rm=TRUE)
@@ -337,15 +281,13 @@ ggplot(AvgOverPerc, aes(x=factor(Size),y=Value,group=Type)) +
 	annotate("text", y = .1, x = 60, label = paste('Correlation = ', corr,sep=''),size=5)
 
 
-
-
 #################
 ## plot percentage, overlap and significance level
 #################
 	sign <- matrix(SignLevels,ncol=1)
 	SignLevels <- data.frame(	'Value' = sign,
 								'Size' = sampleSize,
-								'Type' = rep('SignLevel', 2940))
+								'Type' = rep('SignLevel', 3500))
 		SignLevels$Type <- as.factor(SignLevels$Type)
 		SignLevels$Value <- as.numeric(SignLevels$Value)
 tmp <- aggregate(SignLevels,by=list(SignLevels$Size,SignLevels$Type),mean,na.rm=TRUE)
@@ -363,55 +305,6 @@ ggplot(AvgOverPercSign, aes(x=factor(Size),y=Value,group=Type)) +
 	scale_y_continuous(name='Value') +
 	theme(plot.title = element_text(lineheight=.2, face="bold")) +
 	ggtitle('Average overlap, percentage and significance level (uncorrected p-values).')
-
-
-
-#################
-## plot percentage, overlap, significance level and overlap values of previous results
-#################
-
-# Load and process previous data
-prevWD <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/FLAME/Scenario6"
-load(paste(prevWD,'/MatrixOverlapSplitSubj6',sep=''))
-
-	## Prepare matrix
-PrevOverlap.tmp <- matrix(MatrixOverlap,ncol=1)
-	PrevOverlap <- data.frame('Overlap' = PrevOverlap.tmp, 'Size' = sampleSize)
-	# Calculate averages
-	tmp <- aggregate(PrevOverlap,by=list(PrevOverlap$Size),mean,na.rm=TRUE)
-	PrevAvgOverlap <- data.frame('Type' = rep('PrevOverlap',dim(tmp)[1]),tmp[,c(2:3)])
-		names(PrevAvgOverlap) <- c('Type', 'Value', 'Size')
-
-
-AvgOverPercSignPrev <- rbind(AvgOverPercSign,PrevAvgOverlap)
-
-
-
-colours <- c('#8c510a', '#4393c3','#35978f','#b2182b')
-
-ggplot(AvgOverPercSignPrev, aes(x=factor(Size),y=Value,group=Type)) +
-	geom_line(aes(colour=Type),size=1.3) +
-	scale_colour_manual(values=colours,labels=c('Overlap','Percentage','Significance level', 'Scenario 6')) +
-	scale_x_discrete(breaks=subjBreak, name="Sample size") +
-	scale_y_continuous(name='Value') +
-	theme(plot.title = element_text(lineheight=.2, face="bold")) +
-	ggtitle('Average overlap, percentage, significance level (uncorrected p-values) and previous overlap.')
-
-
-
-
-
-
-
-#################
-## Levelplots, need to have run the first Run
-#################
-grid.arrange(ThrMap1_1,ThrMap1_2,ThrMap1_3,ThrMap2_1,ThrMap2_22,ThrMap2_3,nrow=2)
-grid.arrange(ThrMap1_60,ThrMap1_61,ThrMap1_62,ThrMap2_60,ThrMap2_61,ThrMap2_62,nrow=2)
-
-
-
-
 
 
 #################
@@ -435,11 +328,8 @@ hist(HeatMap,breaks=70,freq=FALSE)
 	hist(HeatMap[HeatMap>0],breaks=68,xlim=c(1,69),xlab='Amount of voxels over 70 sample sizes',
 		main='Distribution of amount of times a voxel is activated over all sample sizes')
 
-
-
 # Levelplot
 levelplot(HeatMap)
-
 
 # Try with levelplot
 HeatMap[maskHeat==0] <- -1
@@ -453,31 +343,6 @@ levelplot(HeatMap,main="Heatmap going from sample size 10 to 700: how many times
 
 
 
-#### Test
-grid.arrange(ThrMap1_1,ThrMap2_1,nrow=1)
-sumSplit <- array(apply(cbind(SPMRun1G1[,1], SPMRun1G2[,1]),c(1),sum,na.rm=TRUE),dim=DIM)
-
-hist(sumSplit)
-
-	sumSplit[maskHeat==0] <- NA
-	sumSplit[sumSplit >= 1] <- 1
-sumSplitPlot <- levelplot(sumSplit,pretty=TRUE, col.regions = terrain.colors, xlab = 'X', ylab = 'Y',
-			xlim=c(0,DIM[1]),ylim=c(0,DIM[2]))
-
-grid.arrange(sumSplitPlot,ThrMap1_70,nrow=1)
-
-difference <- sumSplit - SPMRun1G1[,70]
-
-table(sumSplit)
-table(difference)
-
-
-
-
-
-
-
-
 
 ##
 ###############
@@ -485,20 +350,17 @@ table(difference)
 ###############
 ##
 
-# Need to reload data!
-load(paste(wd,'/SignLevelsAdap',sep=''))
-
+# Might want to reload data!
 sign <- matrix(SignLevels,ncol=1)
 SignLevels <- data.frame(	'Value' = sign,
 							'Size' = sampleSize,
-							'Type' = rep('SignLevel', 2940))
+							'Type' = rep('SignLevel', 3500))
 	SignLevels$Type <- as.factor(SignLevels$Type)
 	SignLevels$Value <- as.numeric(SignLevels$Value)
 tmp <- aggregate(SignLevels,by=list(SignLevels$Size,SignLevels$Type),mean,na.rm=TRUE)
 TMP <- tmp[,c(2:4)]
 names(TMP) <- c('Type', 'Value', 'Size')
 AvgOverPercSign <- rbind(AvgOverPerc,TMP)
-
 
 colours <- c('#8c510a', '#4393c3','#35978f')
 
