@@ -32,6 +32,12 @@
 ###############
 ##
 
+# Location of the (raw) data
+# This data is not stored at Github (too large)
+dat <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/SplitSubjects/ScenarioA_50'
+
+# Save intermediate results
+SaveLoc <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
 
 # Load in libraries
 library(lattice)
@@ -42,14 +48,6 @@ library(reshape2)
 library(RColorBrewer)
 library(Hmisc)
 library(NeuRRoStat)
-
-
-# Location of the (raw) data
-# This data is not stored at Github (too large)
-dat <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/SplitSubjects/ScenarioA_50'
-
-# Save intermediate results
-SaveLoc <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
 
 # Dimension of the brains
 DIM <- c(53,63,46)
