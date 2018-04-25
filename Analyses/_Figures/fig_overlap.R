@@ -172,7 +172,13 @@ corrPlot <- ggplot(Correlation, aes(x = sampleSize, y = PearsonCorr)) +
   theme_bw()
 corrPlot
 
-
+# Or using a boxplot
+corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
+  geom_boxplot(outlier.size = .7) +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name='Pearson product-moment correlation coefficient') +
+  theme_bw()
+corrBoxPlot
 
 ##
 ###############
@@ -199,6 +205,12 @@ ggsave(filename = paste0(getwd(), '/AdaptOverlap.png'),
 ggsave(filename = paste0(getwd(), '/corrPlot.png'),
        plot = corrPlot,
        width = 20, height = 14, units = 'cm', scale = 0.9)
+
+# Correlation: boxplot
+ggsave(filename = paste0(getwd(), '/corrBoxPlot.png'),
+       plot = corrBoxPlot,
+       width = 20, height = 14, units = 'cm', scale = 0.9)
+
 
 
 ##
