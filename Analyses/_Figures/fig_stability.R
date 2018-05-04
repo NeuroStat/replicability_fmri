@@ -59,6 +59,9 @@ NSTEP <- 70
 # Number of groups in each step
 NGROUP <- 2
 
+# Variables for plotting
+subjBreak <- c(seq(10,110,by=20), seq(150,700, by=50))
+
 
 ##
 ###############
@@ -163,6 +166,49 @@ PropLargC <-
         axis.title.y = element_text(size = 9))
 PropLargC
 
+
+# Variability of number of selected clusters
+# We do not care about the two groups in this case, that is we calculate SD
+# over both groups. Hence we have NRUNS * 2 amount of analyses per sample size.
+ClustSize %>%
+  group_by(step, run, group) %>%
+  # Select number of clusters per analyses (i.e. highest index)
+  top_n(n=1, index) %>%
+  ungroup() %>%
+  mutate(SampleSize = step * 10) %>%
+  ggplot(., aes(x = factor(SampleSize), y = index)) +
+  geom_boxplot(outlier.size = .7) +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name='Count') +
+  facet_grid( ~ group) +
+  theme_bw()
+
+# Draw line for the variability
+ClustSize %>%
+  group_by(step, run, group) %>%
+  # Select number of clusters per analyses (i.e. highest index)
+  top_n(n=1, index) %>%
+  ungroup() %>%
+  # Calculate variability over runs and group
+  group_by(step) %>%
+  summarise(SDcount = sd(index)) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Draw line
+  ggplot(., aes(x = SampleSize, y = SDcount)) +
+  geom_line(size = 0.2) + 
+  scale_x_continuous('Sample size') + 
+  scale_y_continuous('Cluster count') +
+  theme_bw() + 
+  theme(axis.title.x = element_text(size = 5),
+        axis.title.y = element_text(size = 5),
+        axis.text = element_text(size = 4),
+        axis.ticks = element_line(size = 0.1),
+        panel.border = element_blank(),
+        panel.grid.major = element_line(size = 0.1),
+        panel.grid.minor = element_line(size = 0.1))
+  
+
+  
 
 # Variance (SD) in terms of amount of voxels of largest cluster
 # Calculated over runs and groups
