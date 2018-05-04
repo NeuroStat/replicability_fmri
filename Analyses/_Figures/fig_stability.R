@@ -184,7 +184,8 @@ ClustSize %>%
   theme_bw()
 
 # Draw line for the variability
-ClustSize %>%
+SDClustCount <- 
+  ClustSize %>%
   group_by(step, run, group) %>%
   # Select number of clusters per analyses (i.e. highest index)
   top_n(n=1, index) %>%
@@ -195,20 +196,19 @@ ClustSize %>%
   mutate(SampleSize = step * 10) %>%
   # Draw line
   ggplot(., aes(x = SampleSize, y = SDcount)) +
-  geom_line(size = 0.2) + 
+  geom_line(size = 0.5) + 
   scale_x_continuous('Sample size') + 
   scale_y_continuous('Cluster count') +
-  theme_bw() + 
-  theme(axis.title.x = element_text(size = 5),
-        axis.title.y = element_text(size = 5),
-        axis.text = element_text(size = 4),
-        axis.ticks = element_line(size = 0.1),
-        panel.border = element_blank(),
-        panel.grid.major = element_line(size = 0.1),
-        panel.grid.minor = element_line(size = 0.1))
-  
-
-  
+  ggtitle('Standard deviation of \n cluster count') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.4),
+        panel.grid.minor = element_line(size = 0.4),
+        axis.title.x = element_text(size = 5, face = 'bold'),
+        axis.title.y = element_text(size = 5, face = 'bold'),
+        axis.text = element_text(size = 4, face = 'bold'),
+        title = element_text(size = 5, face = 'bold'),
+        plot.title = element_text(hjust = 0.5))
+SDClustCount
 
 # Variance (SD) in terms of amount of voxels of largest cluster
 # Calculated over runs and groups
@@ -226,17 +226,19 @@ SDClustSize <-
             sdSize = sd(size)) %>%
   mutate(SampleSize = step * 10) %>%
   ggplot(., aes(x = SampleSize, y = sdSize)) + 
-  geom_line(size = 0.2) + 
+  geom_line(size = 0.5) + 
   scale_x_continuous('Sample size') + 
-  scale_y_continuous('Standard deviation of number of voxels in largest clusters') +
-  theme_bw() + 
-  theme(axis.title.x = element_text(size = 5),
-        axis.title.y = element_text(size = 5),
-        axis.text = element_text(size = 4),
-        axis.ticks = element_line(size = 0.1),
-        panel.border = element_blank(),
-        panel.grid.major = element_line(size = 0.1),
-        panel.grid.minor = element_line(size = 0.1))
+  scale_y_continuous('Cluster size') + 
+  #ggtitle('Number of voxels in largest clusters \n (SD)') +
+  ggtitle('Standard deviation of \n number of voxels in largest cluster') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.4),
+        panel.grid.minor = element_line(size = 0.4),
+        axis.title.x = element_text(size = 5, face = 'bold'),
+        axis.title.y = element_text(size = 5, face = 'bold'),
+        axis.text = element_text(size = 4, face = 'bold'),
+        title = element_text(size = 5, face = 'bold'),
+        plot.title = element_text(hjust = 0.5))
 SDClustSize
 
 
@@ -320,9 +322,16 @@ ggsave(filename = paste0(getwd(), '/clusterStab.png'),
        plot = ggplot2::last_plot(),
        width = 20, height = 24, units = 'cm', scale = 1)
 
-
 # Save the SD of amount of voxels in largest cluster
 ggsave(filename = paste0(getwd(), '/clusterSD.png'),
        plot = SDClustSize, scale = 0.3)
       # width = 12, height = 10, units = 'cm', scale = 0.7)
+
+# Stability: SD of cluster count and cluster size in largest cluster
+plot_grid(SDClustCount, SDClustSize, nrow = 1, align = 'hv', axis = 'tblr')
+ggsave(filename = paste0(getwd(), '/stabilitySD.png'),
+       plot = ggplot2::last_plot(), 
+       width = 12, height = 6, units = 'cm')
+
+
 
