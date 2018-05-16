@@ -25,7 +25,7 @@
 ##
 
 # Number of steps in algorithm for testing purpose
-nstep <- 1000
+nstep <- 100
 
 # Number of voxels for testing purpose
 nvox <- 100
@@ -38,45 +38,40 @@ R <- 10
 ######################
 
 # Define function weights (using current step in algorithm)
-weight <- function(lambda, pi_A0, pi_I0, R, Gi){
-  # First calculate numinator
-  num <- lambda * (pi_A0^(R - Gi)*(1 - pi_A0)^Gi)
+weight <- function(lambda, pi_A1, pi_I1, R, Gi){
+  # First calculate numinator: lambda times density of binomial
+  num <- lambda * dbinom(x = Gi, size = R, prob = pi_A1)
   # Now calculate denominator
-  denom <- num + (1 - lambda)*(pi_I0^(R - Gi)*(1 - pi_I0)^Gi)
+  denom <- num + ((1 - lambda) * dbinom(x = Gi, size = R, prob = pi_I1))
   # Return value
   return(num/denom)
 }
 
 # Maximalization function that returns updated 
-#   value for pi_A0, given current values (_c)
-update_pi_A <- function(lambda_c, pi_A0_c, pi_I0_c, R, Gi){
+#   value for pi_A1, given current values (_c)
+update_pi_A <- function(lambda_c, pi_A1_c, pi_I1_c, R, Gi){
   # First calculate numinator
-  num <- sum((weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi = Gi) * R) -
-                (weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi = Gi) * Gi))
+  num <- sum((weight(lambda_c, pi_A1_c, pi_I1_c, R, Gi = Gi) * Gi))
   # Now calculate denominator
-  denom <- sum((weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi = Gi) * R))
+  denom <- sum((weight(lambda_c, pi_A1_c, pi_I1_c, R, Gi = Gi) * R))
   # Return value
   return(num/denom)
 }
 
-# Same for pi_I0
-update_pi_I <- function(lambda_c, pi_A0_c, pi_I0_c, R, Gi){
+# Same for pi_I1
+update_pi_I <- function(lambda_c, pi_A1_c, pi_I1_c, R, Gi){
   # First calculate numinator
-  num <- sum(((1 - weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi = Gi)) * R) -
-               ((1 - weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi = Gi)) * Gi))
+  num <- sum(((1 - weight(lambda_c, pi_A1_c, pi_I1_c, R, Gi = Gi)) * Gi))
   # Now calculate denominator
-  denom <- sum(((1 - weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi = Gi)) * R))
+  denom <- sum(((1 - weight(lambda_c, pi_A1_c, pi_I1_c, R, Gi = Gi)) * R))
   # Return value
   return(num/denom)
 }
 
 # Same for lambda
-update_lambda <- function(lambda_c, pi_A0_c, pi_I0_c, R, Gi){
-  # Note: length(Gi) equals amount of voxels (N)!
-  sum(weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi)) / length(Gi)
-  #mean(weight(lambda_c, pi_A0_c, pi_I0_c, R, Gi))
+update_lambda <- function(lambda_c, pi_A1_c, pi_I1_c, R, Gi){
+  mean(weight(lambda_c, pi_A1_c, pi_I1_c, R, Gi))
 }
-
 
 
 ##
@@ -112,9 +107,9 @@ for(v in 1:nstep){
   ## 1: Initial starting values ##
   ################################
   if(v == 1){
-    lambda <- 0.05
-    pi_A0 <- 0.9
-    pi_I0 <- 0.9
+    lambda <- 0.5
+    pi_A1 <- 0.1
+    pi_I1 <- 0.1
   }
 
   ################################
@@ -127,52 +122,21 @@ for(v in 1:nstep){
   ## 3: Maximise (update parameters) ##
   #####################################
   
-  # Parameter: pi_A0
-  pi_A_up <- update_pi_A(lambda, pi_A0, pi_I0, R, TDat_FC)
-  # Parameter: pi_I0
-  pi_I_up <- update_pi_I(lambda, pi_A0, pi_I0, R, TDat_FC)
+  # Parameter: pi_A1
+  pi_A_up <- update_pi_A(lambda, pi_A1, pi_I1, R, TDat_FC)
+  # Parameter: pi_I1
+  pi_I_up <- update_pi_I(lambda, pi_A1, pi_I1, R, TDat_FC)
   # Paramater: lambda
-  lambda_up <- update_lambda(lambda, pi_A0, pi_I0, R, TDat_FC)
-  
+  lambda_up <- update_lambda(lambda, pi_A1, pi_I1, R, TDat_FC)
   
   # Now we replace the parameters
   lambda <- lambda_up
-  pi_A0 <- pi_A_up
-  pi_I0 <- pi_I_up
+  pi_A1 <- pi_A_up
+  pi_I1 <- pi_I_up
   
-  cat( "Iteration:", v, "| PI A0 =", pi_A0, "| PI I0 =", pi_I0, "| Lambda =", lambda,  "\n" )
+  cat( "Iteration:", v, "| PI A1 =", pi_A1, "| PI I1 =", pi_I1, "| Lambda =", lambda,  "\n" )
 }
 
-
-
-# Using density function of binomial distribution
-lambda <- 0.05
-pi_A0 <- 0.1
-pi_I0 <- 0.1
-
-for( i in 1:nstep ) {
-  
-  T_1 = lambda * dbinom(TDat_FC, size = R, prob = pi_A0)
-  T_2 = (1 - lambda) * dbinom(TDat_FC, size = R, prob = pi_I0)
-  
-  Weight_1 = T_1 / (T_1 + T_2)
-  Weight_2 = T_2 / (T_1 + T_2)  #The same as 1-Weight_1
-  
-  p_1 = mean(Weight_1)
-  p_2 = mean(Weight_2)
-  
-  pi_A0 <- sum(Weight_1 * TDat_FC ) / sum(Weight_1)
-  pi_I0 <- sum(Weight_2 * TDat_FC ) / sum(Weight_2)
-  
-  sd_1 = sqrt(sum( Weight_1 * (x-mu_1)^2) / sum(Weight_1))
-  sd_2 = sqrt(sum( Weight_2 * (x-mu_2)^2) / sum(Weight_2))
-  
-  
-  ## print the current estimates
-  
-  cat( "Iteration: ", i, "| Mean", mu_1, mu_2, "| St. Dev", sd_1, sd_2,"| Prob", p_1, p_2,  "\n" )
-  
-}
 
 
 
