@@ -96,9 +96,9 @@ true_PII1 <- 0.2
 true_lambda <- 0.25
 
 # Small simulation 
-nsim <- 100
+nsim <- 1000
 
-sim_PIA <- sim_PII <- sim_lambda <- c()
+sim_PIA <- sim_PII <- sim_lambda <- num_iter <- c()
 
 for(i in 1:nsim){
   # Create data
@@ -118,7 +118,12 @@ for(i in 1:nsim){
       lambda <- true_lambda
       pi_A1 <- true_PIA1
       pi_I1 <- true_PII1
-      #cat( "Iteration: 0", "| PI A1 =", pi_A1, "| PI I0 =", pi_I0, "| Lambda =", lambda,  "\n" )
+      
+      #lambda <- 0.8
+      #pi_A1 <- 0.9
+      #pi_I1 <- 0.4
+      
+      #cat( "Iteration: 0", "| PI A1 =", pi_A1, "| PI I0 =", pi_I1, "| Lambda =", lambda,  "\n" )
     }
   
     ################################
@@ -130,6 +135,9 @@ for(i in 1:nsim){
     #####################################
     ## 3: Maximise (update parameters) ##
     #####################################
+    
+    # Calculate current log likelihood
+    logLik_current <- sum((lambda * pi_A1^TDat_mix$G * (1 - pi_A1)^(R - TDat_mix$G)) + ((1 - lambda)*pi_I1^TDat_mix$G * (1 - pi_I1)^(R - TDat_mix$G)))
     
     # Parameter: pi_A1
     pi_A_up <- update_pi_A(lambda, pi_A1, pi_I1, R, TDat_mix$G)
@@ -143,13 +151,20 @@ for(i in 1:nsim){
     pi_A1 <- pi_A_up
     pi_I1 <- pi_I_up
     
-    #cat( "Iteration:", v, "| PI A1 =", pi_A1, "| PI I0 =", pi_I0, "| Lambda =", lambda,  "\n" )
+    # Updated log likelihood 
+    logLik_update <- sum((lambda * pi_A1^TDat_mix$G * (1 - pi_A1)^(R - TDat_mix$G)) + ((1 - lambda)*pi_I1^TDat_mix$G * (1 - pi_I1)^(R - TDat_mix$G)))
+    
+    #cat( "Iteration:", v, "| PI A1 =", pi_A1, "| PI I0 =", pi_I1, "| Lambda =", lambda, " | Prev L = ", logLik_current, " | Update L = ", logLik_update,  "\n" )
+    
+    # Convergence rule
+    if(abs(logLik_update - logLik_current) < 0.001) break
   }
 
   # Save parameters
   sim_PIA <- c(sim_PIA, pi_A1)
   sim_PII <- c(sim_PII, pi_I1)
   sim_lambda <- c(sim_lambda, lambda)
+  num_iter <- c(num_iter,v)
 }
 
 true_PIA1
@@ -163,7 +178,7 @@ mean(sim_lambda)
 
 
 # Test function for R package
-EM_binom <- function(Y, N, inLam, inPI1, inPI2, max.iter = 250){
+EMbinom <- function(Y, N, iniL, iniPI1, iniPI2, max.iter = 500, tolerance = 0.001){
   
   ##################
   # Local functions
@@ -219,9 +234,9 @@ EM_binom <- function(Y, N, inLam, inPI1, inPI2, max.iter = 250){
     ## 1: Initial starting values ##
     ################################
     if(v == 1){
-      lambda <- inLam
-      pi_1 <- inPI1
-      pi_2 <- inPI2
+      lambda <- iniL
+      pi_1 <- iniPI1
+      pi_2 <- iniPI2
     }
     
     ################################
@@ -234,6 +249,9 @@ EM_binom <- function(Y, N, inLam, inPI1, inPI2, max.iter = 250){
     ## 3: Maximise (update parameters) ##
     #####################################
     
+    # Current log likelihood
+    logLik_current <- sum((lambda * pi_1^Y * (1 - pi_1)^(N - Y)) + ((1 - lambda)*pi_2^Y * (1 - pi_2)^(N - Y)))
+    
     # Parameter: pi_A1
     pi_1_up <- update_pi_1(lambda, pi_1, pi_2, N, Y)
     # Parameter: pi_I1
@@ -245,15 +263,24 @@ EM_binom <- function(Y, N, inLam, inPI1, inPI2, max.iter = 250){
     lambda <- lambda_up
     pi_1 <- pi_1_up
     pi_2 <- pi_2_up
+    
+    ###################################
+    ## 4: Stopping rule: convergence ##
+    ###################################
+    
+    # If the absolute difference between the log likelihoods is smaller than the tolerance,
+    #  then stop the algorithm
+    logLik_update <- sum((lambda * pi_1^Y * (1 - pi_1)^(N - Y)) + ((1 - lambda)*pi_2^Y * (1 - pi_2)^(N - Y)))
+    if(abs(logLik_update - logLik_current) < tolerance) break
+    
   }
   
   # data frame with results
-  res <- data.frame('lambda' = lambda, 'PI1' = pi_1, 'PI2' = pi_2)
+  res <- data.frame('lambda' = lambda, 'PI1' = pi_1, 'PI2' = pi_2, 'num.iter' = v)
   return(res)
 }
 
-
-EM_binom(Y = TDat_mix$G, N = R, inLam = true_lambda, inPI1 = true_PIA1, inPI2 = true_PII1, max.iter = 100)
+EMbinom(Y = TDat_mix$G, N = R, iniL = true_lambda, iniPI1 = true_PIA1, iniPI2 = true_PII1, max.iter = 250, tolerance = 0.001)
 
 
 
