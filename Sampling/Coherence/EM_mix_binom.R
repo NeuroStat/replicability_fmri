@@ -91,8 +91,8 @@ update_lambda <- function(lambda_c, pi_A1_c, pi_I1_c, R, Gi){
 set.seed(pi*3.14)
 
 ## Data as mixture of binomials
-true_PIA1 <- 0.75
-true_PII1 <- 0.2
+true_PIA1 <- 0.50
+true_PII1 <- 0.50
 true_lambda <- 0.25
 
 # Small simulation 
@@ -115,13 +115,13 @@ for(i in 1:nsim){
     ## 1: Initial starting values ##
     ################################
     if(v == 1){
-      lambda <- true_lambda
-      pi_A1 <- true_PIA1
-      pi_I1 <- true_PII1
+      #lambda <- true_lambda
+      #pi_A1 <- true_PIA1
+      #pi_I1 <- true_PII1
       
-      #lambda <- 0.8
-      #pi_A1 <- 0.9
-      #pi_I1 <- 0.4
+      lambda <- 0.8
+      pi_A1 <- 0.9
+      pi_I1 <- 0.4
       
       #cat( "Iteration: 0", "| PI A1 =", pi_A1, "| PI I0 =", pi_I1, "| Lambda =", lambda,  "\n" )
     }
