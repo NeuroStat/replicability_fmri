@@ -210,7 +210,7 @@ EMbinom <- function(Y, N, iniL, iniPI1, iniPI2, max.iter = 500, tolerance = 0.00
   # Same for pi_2
   update_pi_2 <- function(lambda_c, pi_1_c, pi_2_c, N, Yi){
     # Weight of current step
-    weight_c <- weight(lambda_c, pi_1_c, pi_2_c, R, Yi = Yi)
+    weight_c <- weight(lambda_c, pi_1_c, pi_2_c, N, Yi = Yi)
     # First calculate numinator
     num <- sum(((1 - weight_c) * Yi))
     # Now calculate denominator
