@@ -2,7 +2,7 @@
 #### TITLE:     Plot within sample size stability with increasing sample sizes.
 #### Contents: 	
 #### 
-#### Source Files: /FreddieFreeloader/Analyses/_PreProcessing/_Stability
+#### Source Files: /FreddieFreeloader/Analyses/_Figures/
 #### First Modified: 19/04/2018
 #### Notes: 
 #################
@@ -230,7 +230,8 @@ SDClustSize <-
   scale_x_continuous('Sample size') + 
   scale_y_continuous('Cluster size') + 
   #ggtitle('Number of voxels in largest clusters \n (SD)') +
-  ggtitle('Standard deviation of \n number of voxels in largest cluster') +
+  labs(subtitle = 'Standard deviation of number of voxels in largest cluster') +
+  #ggtitle('Standard deviation of \n number of voxels in largest cluster') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.4),
         panel.grid.minor = element_line(size = 0.4),
@@ -241,6 +242,38 @@ SDClustSize <-
         plot.title = element_text(hjust = 0.5))
 SDClustSize
 
+# OHBM 2018 version
+SDClustSize <- 
+  ClustSize %>%
+  group_by(step, run, group) %>%
+  # Filter only largest cluster
+  top_n(n=1, size) %>%
+  ungroup() %>%
+  # now calculate variance
+  group_by(step) %>%
+  summarise(amount = max(index),
+            avgSize = mean(size),
+            varSize = var(size),
+            sdSize = sd(size)) %>%
+  mutate(SampleSize = step * 10) %>%
+  ggplot(., aes(x = SampleSize, y = sdSize)) + 
+  geom_line(size = 0.5) + 
+  scale_x_continuous('Sample size') + 
+  scale_y_continuous('Standard Deviation') + 
+  labs(subtitle = 'Standard deviation of number of voxels in largest cluster') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+SDClustSize
 
 
 ##########################################
@@ -264,14 +297,46 @@ OverlClust1Vox <- numUniqClust %>%
   group_by(cluster) %>% 
   # Plot
   ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
-  geom_smooth(aes(colour = cluster), size = 1.1) +
+  geom_smooth(aes(colour = cluster), size = 1.7) +
   scale_x_continuous('Sample Size') +
   scale_y_continuous('Count (clusters)') +
   scale_color_manual('', values = c('#1b9e77','#d95f02'),
                      labels = c('Overlapping clusters',
                                 'Total amount of clusters')) + 
   theme_bw() +
-  theme(legend.position = 'bottom') 
+  theme(legend.position = 'bottom')
+OverlClust1Vox
+
+
+# For OHBM, we have:
+OverlClust1Vox <- numUniqClust %>% 
+  # Take overlapping clusters instead of unique clusters
+  mutate(OverlClust = TotClus - UniClus) %>%
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,5) %>%
+  mutate(SampleSize = step * 10) %>%
+  filter(cluster != 'UniClus') %>%
+  group_by(cluster) %>% 
+  # Plot
+  ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
+  geom_smooth(aes(colour = cluster), size = 1.7) +
+  scale_x_continuous('Sample Size') +
+  scale_y_continuous('Count (clusters)') +
+  scale_color_manual('', values = c('#1b9e77','#d95f02'),
+                     labels = c('Overlapping clusters',
+                                'Total amount of clusters')) + 
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'top')
 OverlClust1Vox
 
 

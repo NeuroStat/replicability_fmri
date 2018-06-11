@@ -116,8 +116,29 @@ overlapPlot
 overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
   geom_boxplot(outlier.size = .7) +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
-  scale_y_continuous(name='Overlap') +
+  scale_y_continuous(name=expression(Overlap~~ (omega))) +
   theme_bw()
+overlapBoxPlot
+
+# Version for OHBM 2018
+subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
+overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
+  geom_boxplot(outlier.size = .7, outlier.color = 'orange') +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~(omega))) +
+  labs(subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
 overlapBoxPlot
 
 
@@ -178,6 +199,26 @@ corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
   scale_y_continuous(name='Pearson product-moment correlation coefficient') +
   theme_bw()
+corrBoxPlot
+
+# Version for OHBM 2018
+subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
+corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
+  geom_boxplot(outlier.size = .7, outlier.colour = 'orange') +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name=expression(Pearson~ product~-~moment~ correlation~ coefficient~~(rho))) +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
 corrBoxPlot
 
 ##
