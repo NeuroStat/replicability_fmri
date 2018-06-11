@@ -5,7 +5,7 @@
 #PBS -o output/output.file
 #PBS -e error/error.file
 #PBS -m a
-#PBS -l walltime=11:25:00
+#PBS -l walltime=04:25:00
 #PBS -l vmem=30GB
 #
 
@@ -21,8 +21,8 @@ vsc=40728
 
 
 #----------------------------------------------------#
-# WHICH SCENARIO DO YOU WANT TO RUN (does not matter for this script actually)?
-scenario=A
+# WHICH SCENARIO DO YOU WANT TO RUN (uncorrected or fdr)?
+scenario=uncorrected
 #----------------------------------------------------#
 
 # Location of scripts 
