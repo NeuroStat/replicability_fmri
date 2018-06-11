@@ -1,7 +1,7 @@
-#!/bin/sh
-
 ####################
-#### TITLE:     SCENARIO A, B and C: Program to stepwise increase the sample size of the group analysis (the GT) to see when stability is achieved, controlling for centers and splitting up subjects.
+#### TITLE:     Script where we stepwise increase the sample size of the 
+####            group analysis (the GT) to see when stability is achieved, 
+####            splitting up subjects.
 ####
 #### Contents:
 ####
@@ -10,7 +10,7 @@
 #### Notes:
 #################
 
-# Make sure you have all the sample sizes for each step (obtained by scenarioA.R)!
+# Make sure you have all the sample sizes for each step (obtained by scenarioCohen.R)!
 # So you need to manually create Results folder and then create SampleSizes in this folder.
 
 #### Structure of folders (NOTE: structure is slightly different on local machine):
@@ -36,7 +36,7 @@
 	index=$1
 	# Which is your vsc number
 	vsc=$2
-	# Which scenario
+	# Which thresholding scenario (uncorrected or fdr)
 	scenario=$3
 	# Which computer: HPC or MAC
 	COMPUTER=HPC
@@ -47,8 +47,13 @@
 	if [ $COMPUTER = HPC ] ; then
 		data=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/Imagen/data
 	fi
-	# Significance level in group analysis
-	signLevel=0.05
+	# Significance level in group analysis: uncorrected = 0.001, BH FDR = 0.05
+	if [ $scenario = uncorrected ] ; then
+	  signLevel=0.001
+	fi
+		if [ $scenario = fdr ] ; then
+	  signLevel=0.05
+	fi
 	echo .... INDEX "$index" ....
 
 
@@ -165,17 +170,18 @@ cd "${WD}"
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Step three: inference (voxelwise FDR)
+# Step three: inference (voxelwise Uncorrected/FDR)
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-echo .... Voxel wise inference "for" group analysis, corrected "for" multiple testing"!!!" ....
+echo .... Voxel wise inference "for" group analysis, "(un)corrected" "for" multiple testing"!!!" ....
 cd "${GROUPWD}"
 
 # Some preparation
 /bin/rm -f stats/zem* stats/zols* stats/mask* # zem and zols are unknown actually... [taken from Nichols blog, so I leave it here]
 gunzip mask.nii.gz
 
-Rscript "${SCRPT}"/voxelInference.R "$GROUPWD" "$GROUPWD/stats" "$signLevel" &> ROutput_voxelInference.txt
+# Inference: depending on scenario either uncorrected P < 0.001 or BH FDR < 0.05
+Rscript "${SCRPT}"/voxelInference.R "$GROUPWD" "$GROUPWD/stats" "$signLevel" "$scenario" &> ROutput_voxelInference.txt
 
 
 

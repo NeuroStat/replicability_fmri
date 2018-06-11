@@ -44,6 +44,10 @@ mask <- readNIfTI(paste(wd,"/mask.nii",sep=""), verbose=FALSE, warn=-1, reorient
 # Significance level
 signLevel <- as.numeric(as.character(args)[3])
 
+# Thresholding scenario
+scenario <- as.character(args)[4]
+print(paste('P-VALUES IN THIS FOLDER ARE THRESHOLDED AT: ', scenario, ' < ', signLevel, sep = ''))
+
 
 ##
 ###############
@@ -62,8 +66,14 @@ MZmap[idMask] <- NA
 ## Calculate P-values
 pvals <- 1-pnorm(MZmap)
 
-## Adjust P-values with Benjamin & Hochberg procedure (built in R function)
-adjPvals <- array(p.adjust(pvals,method="BH"),dim=DIM)
+## Thresholding method: depending on value of scenario
+if(scenario == 'uncorrected'){
+  adjPvals <- pvals
+}
+if(scenario == 'fdr'){
+  ## Adjust P-values with Benjamin & Hochberg procedure (built in R function)
+  adjPvals <- array(p.adjust(pvals,method="BH"),dim=DIM)
+}
 
 ## Threshold at signLevel BH p-value: significant P-values get 1!
 idP <- adjPvals <= signLevel
@@ -98,7 +108,4 @@ threshPval[idNA] <- 0
 
 niftiimage <- nifti(img=threshPval,dim=DIM)
 writeNIfTI(niftiimage,filename=paste(wd,'/thresh_zstat1',sep=''),gzipped=FALSE)
-
-
-
 
