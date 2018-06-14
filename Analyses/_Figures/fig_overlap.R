@@ -126,7 +126,8 @@ overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) +
   geom_boxplot(outlier.size = .7, outlier.color = 'orange') +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
   scale_y_continuous(name=expression(Overlap~~(omega))) +
-  labs(subtitle = 'FDR = 0.05') +
+  labs(title = 'Conditional test-retest reliability',
+       subtitle = 'FDR = 0.05') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
@@ -208,6 +209,7 @@ corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
   scale_y_continuous(name=expression(Pearson~ product~-~moment~ correlation~ coefficient~~(rho))) +
   theme_classic() +
+  labs(title = 'Unconditional test-retest reliability') +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
         axis.title.x = element_text(face = 'plain'),

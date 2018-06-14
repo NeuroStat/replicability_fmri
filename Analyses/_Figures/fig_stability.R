@@ -260,7 +260,7 @@ SDClustSize <-
   geom_line(size = 0.5) + 
   scale_x_continuous('Sample size') + 
   scale_y_continuous('Standard Deviation') + 
-  labs(subtitle = 'Standard deviation of number of voxels in largest cluster') +
+  labs(title = 'Variability of (largest) cluster size (in number of voxels)') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),

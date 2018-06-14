@@ -229,7 +229,8 @@ ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) +
   geom_boxplot(outlier.size = .7, outlier.color = 'orange', size = 0.3) +
   scale_x_discrete(breaks = subjBreak, name = "Sample size") +
   scale_y_continuous(name=expression(Coherence~~(kappa)), breaks = seq(0,1,0.2)) +
-  labs(subtitle = 'FDR = 0.05') +
+  labs(title = 'Coherence',
+    subtitle = 'FDR = 0.05') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
