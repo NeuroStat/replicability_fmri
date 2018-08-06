@@ -208,6 +208,12 @@ Kappa %>% group_by(SampleSize) %>%
             minKap = min(kappa),
             maxKap = max(kappa)) 
 
+# Min and max median
+Kappa %>% group_by(SampleSize) %>%
+  summarise(MedKap = median(kappa)) %>%
+  filter(MedKap == min(MedKap) | 
+           MedKap == max(MedKap))
+
 
 # Plot results
 ggplot(Kappa, aes(x = SampleSize, y = kappa)) +
@@ -222,14 +228,16 @@ ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) +
   labs(caption = 'FDR = 0.05') +
   theme_bw()
 
+# Set window 
+quartz.options(width=18,height=12)
 
-# Version OHBM 2018
+# Version OHBM 2018 (and paper?)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
-ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) + 
+KappaPlot <- ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) + 
   geom_boxplot(outlier.size = .7, outlier.color = 'orange', size = 0.3) +
   scale_x_discrete(breaks = subjBreak, name = "Sample size") +
   scale_y_continuous(name=expression(Coherence~~(kappa)), breaks = seq(0,1,0.2)) +
-  labs(title = 'Coherence',
+  labs(title = 'Concordance/coherence',
     subtitle = 'FDR = 0.05') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
@@ -242,7 +250,20 @@ ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) +
         axis.line = element_line(size = .75),
         title = element_text(face = 'plain'),
         plot.title = element_text(hjust = 0.5),
-        legend.position = 'top')
+        legend.position = 'bottom')
+KappaPlot
+
+# Save the plot
+ggsave(filename = paste0(getwd(), '/Kappa_FDR_05.png'),
+       plot = KappaPlot,
+       width = 20, height = 14, units = 'cm', scale = 0.9)
+
+
+# When is median K >= 0.80?
+Kappa %>%
+  group_by(SampleSize) %>%
+  summarise(MedKap = median(kappa)) %>%
+  filter(MedKap >= 0.80)
 
 
 
@@ -302,3 +323,10 @@ Kappa_both %>%
     theme_bw() +
     theme(legend.position = 'bottom')
 
+
+# Median kappa >= 0.80 in both thresholding levels?
+Kappa_both %>% 
+  filter(typeOfkappa == 'kappa') %>%
+  group_by(SampleSize, threshold) %>%
+  summarise(MedKap = median(value)) %>%
+  filter(MedKap >= 0.80)

@@ -24,7 +24,8 @@
   # Number of clusters
   # Average cluster size
   # Variance of cluster sizes
-  # Out of the X runs, how many clusters are at least one voxel overlapping?
+  # Out of all analyses, how many clusters are at least one voxel overlapping with the replication analysis?
+  # --> Also take the average over test and replication of the latter.
   # Average fraction of the clusters that have overlapping voxels.
 
 
@@ -108,7 +109,11 @@ ClustSize <- data.frame('index' = as.integer(),
 
 # Data frame with the number of unique clusters
 numUniqClust <- data.frame('UniClus' = as.integer(),
+          'OverlCluster' = as.integer(),
           'TotClus' = as.integer(),
+          'AvUniClus'= as.integer(),
+          'AvOverlCluster'= as.integer(),
+          'AvTotClus'= as.integer(),
           'step' = as.integer(),
           'run' = as.integer()) %>% as.tibble()
 
@@ -186,10 +191,31 @@ for(i in 1:NRUNS){
       # sum over both images
     uniCluster <- sum(!1:max(clusters[,IDmin]) %in% comClustMin) + 
                     sum(!1:max(clusters[,IDmax]) %in% comClustMax)
+    
+    # The total amount of clusters
+      # --> NOTE: this is the total over BOTH images (so not the total per analysis)
+    TotClus <- as.integer(c(max(imageG1) + max(imageG2)))
+    
+    # The number of overlapping clusters --> count the cluster in both images
+      # that overlaps (so you have 2 clusters overlapping, one in each analysis, 
+      # per overlap event). 
+    OverlCluster <- TotClus - uniCluster
+    
+    # NOTE: we will also add the average number of unique, overlapping and total clusters.
+    #   This makes more sense as we then can speak about the individual analysis (on average).
+    #   While the other numbers are about both analyses together. 
+    AvUniClus <- uniCluster/2
+    AvOverlCluster <- OverlCluster/2
+    AvTotClus <- TotClus/2
+
     # Add to data frame
     numUniqClust <- bind_rows(numUniqClust,
           data.frame('UniClus' = uniCluster,
-                     'TotClus' = as.integer(c(max(imageG1) + max(imageG2))),
+                     'OverlCluster' = OverlCluster,
+                     'TotClus' = TotClus,
+                     'AvUniClus' = AvUniClus,
+                     'AvOverlCluster' = AvOverlCluster,
+                     'AvTotClus' = AvTotClus,
                      'step' = as.integer(j),
                      'run' = as.integer(i)))
      

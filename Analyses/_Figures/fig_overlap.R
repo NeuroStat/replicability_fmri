@@ -80,6 +80,7 @@ sampleSize <- rep(seq(10,700,by=10), NRUNS)
 
 # Variables for plotting
 subjBreak <- c(seq(10,110,by=20), seq(150,700, by=50))
+subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 
 ##
 ###############
@@ -120,7 +121,7 @@ overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) +
   theme_bw()
 overlapBoxPlot
 
-# Version for OHBM 2018
+# Version for OHBM 2018 (and paper?)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
   geom_boxplot(outlier.size = .7, outlier.color = 'orange') +
@@ -142,6 +143,16 @@ overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) +
         legend.position = 'bottom')
 overlapBoxPlot
 
+# Median overlap at N = 200
+Overlap %>%
+  filter(sampleSize == 200) %>%
+  summarise(med = median(overlap))
+
+# Maximum overlap
+Overlap %>% as_tibble() %>%
+  group_by(sampleSize) %>%
+  summarise(AvOver = mean(overlap)) %>%
+  filter(AvOver == max(AvOver))
 
 #################
 ## Points for overlap and ADAPTIVE THRESHOLDING 
@@ -156,23 +167,77 @@ OverlapAdapt <- data.frame('Value' = c(matrix(MatrixOverlapAdap, ncol = 1),
                         rep('SignLevels', NRUNS * NSTEP)),
              'size' = rep(sampleSize, times = 3)) %>% as.tibble()
 
+# What sample size corresponds to P < 0.001?
+SSize001 <- OverlapAdapt %>%
+  filter(Type == 'SignLevels') %>%
+  group_by(size) %>%
+  summarise(AvSignL = mean(Value)) %>%
+  filter(AvSignL <= 0.001) %>%
+  dplyr::slice(1) %>%
+  dplyr::select(size) %>% as.numeric()
+SSize001
+
+# What is the median overlap associated with this sample size?
+MedOv001 <- OverlapAdapt %>%
+  filter(size == SSize001) %>%
+  filter(Type == 'Overlap') %>%
+  summarise(MedOv = median(Value)) %>%
+  dplyr::select(MedOv) %>% as.numeric() %>% round(.,2)
+MedOv001
+
+# Median overlap at N = 20 and median P value
+OverlapAdapt %>% 
+  group_by(size, Type) %>%
+  summarise(MedOv = median(Value)) %>%
+  filter(size == 20)
+
+# Maximum overlap and significant level
+OverlapAdapt %>% 
+  filter(Type == 'Overlap') %>%
+  group_by(size, Type) %>%
+  summarise(MedOv = median(Value)) %>%
+  ungroup() %>%
+  filter(MedOv == max(MedOv))
+OverlapAdapt %>% 
+  group_by(size, Type) %>%
+  summarise(MedOv = median(Value)) %>%
+  filter(size == 700)
+
 # Plot overlap, % of masked voxels being activated and significance level
 AdaptOverlap <- OverlapAdapt %>%
   mutate(SampleSize = size) %>% 
 ggplot(., aes(x = SampleSize, y = Value, group = Type)) + 
-  geom_point(aes(colour = Type), size = 0.6, alpha = 0.75) +
+  geom_point(aes(shape = Type, colour = Type), size = 0.8, alpha = 0.75) +
+  geom_vline(xintercept = SSize001, linetype = 'dashed') +
+  geom_hline(yintercept = MedOv001, linetype = 'dashed') +
   stat_summary(aes(group = Type), fun.y = mean, 
                geom="line", colour = 'black', size = .6) +
-  scale_color_manual('', values = c('#1b9e77','#d95f02','#7570b3'),
-                     labels = c('Overlap', '% of activated voxels', 'Significance level')) +
-  scale_y_continuous('') + 
+  scale_color_manual('', values = c('#000000','#525252','#969696'),
+                    labels = c('Overlap', 'x100 % of activated voxels', 'Significance level')) +
+  scale_shape_manual('', values = c(17,18,1),
+                     labels = c('Overlap', 'x100 % of activated voxels', 'Significance level')) +
+  scale_y_continuous('', breaks = sort(c(seq(0,0.8,by = 0.2), MedOv001))) + 
   scale_x_continuous('Sample size', breaks = subjBreak) +
   theme_bw() +
   # Increase size in legend
   guides(colour = guide_legend(override.aes = list(size=3)),
          alpha = guide_legend(override.aes = list(alpha = 1))) +
-  theme(legend.position = 'bottom')
-AdaptOverlap  
+  labs(title = 'Conditional test-retest reliability',
+       subtitle = 'Adaptive thresholding') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+AdaptOverlap
+
 
 
 #################
@@ -202,7 +267,7 @@ corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) +
   theme_bw()
 corrBoxPlot
 
-# Version for OHBM 2018
+# Version for OHBM 2018 (and paper?)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
   geom_boxplot(outlier.size = .7, outlier.colour = 'orange') +
@@ -222,6 +287,16 @@ corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) +
         plot.title = element_text(hjust = 0.5),
         legend.position = 'bottom')
 corrBoxPlot
+
+# Maximum value
+Correlation %>%
+  filter(PearsonCorr == max(PearsonCorr))
+
+# When do we have a median rho of 0.80?
+Correlation %>% as_tibble() %>%
+  group_by(sampleSize) %>%
+  summarise(MedPearson = median(PearsonCorr)) %>%
+  filter(MedPearson >= 0.80)
 
 ##
 ###############

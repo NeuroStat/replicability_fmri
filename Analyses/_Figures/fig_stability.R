@@ -61,6 +61,7 @@ NGROUP <- 2
 
 # Variables for plotting
 subjBreak <- c(seq(10,110,by=20), seq(150,700, by=50))
+subjBreak <- c(10, seq(100,700, by=100))
 
 
 ##
@@ -85,9 +86,73 @@ propOverVox <- readRDS(paste(LocIntRes, 'propOverVox.rda', sep = ''))
 ###############
 ##
 
-#########################
-##### CLUSTER SIZES #####
-#########################
+####################################
+##### CLUSTER SIZES AND COUNTS #####
+####################################
+
+# Average cluster size per index for N = 700
+ClustSize %>%
+  mutate(SampleSize = step * 10) %>%
+  dplyr::select(index, size, run, group, SampleSize) %>%
+  group_by(index, group, SampleSize) %>%
+  filter(SampleSize >= 700) %>% 
+  # Calculate average cluster size per index and group over all runs
+  summarise(avSize = mean(size)) %>%
+  ungroup() %>%
+  group_by(index) %>%
+  summarise(AvInSize = mean(avSize))
+
+# Proportion of masked voxels in a cluster
+ClustSize %>%
+  # Create sample size
+  mutate(SampleSize = step * 10) %>%
+  # Select largest sample size
+  filter(SampleSize == 700) %>%
+  dplyr::select(index, size, group, NumMask) %>%
+  # Average per index and group
+  group_by(index, group) %>%
+  summarise(AvInSizeG = mean(size),
+            AvMask = mean(NumMask)) %>%
+  # Average over both groups
+  group_by(index) %>%
+  summarise(AvInSize = mean(AvInSizeG),
+            AvMask = mean(AvMask)) %>%
+  # Sum both indices
+  ungroup() %>%
+  summarise(SumInd = sum(AvInSize),
+            AvMask = mean(AvMask)) %>%
+  # Calculate proportion
+  mutate(TotProp = SumInd/AvMask)
+
+# Proportion of masked voxels in a cluster, separated by the two groups at N = 700
+ClustSize %>%
+  # Create sample size
+  mutate(SampleSize = step * 10) %>%
+  # Select largest sample size
+  filter(SampleSize == 700) %>%
+  # Only take the largest cluster (there are two analyses with an extra small cluster)
+  group_by(step, run, group, SampleSize) %>% 
+  top_n(1, size) %>% 
+  ungroup() %>%
+  dplyr::select(size, group, run, NumMask) %>%
+  # Average per group
+  group_by(group) %>%
+  summarise(AvInSize = mean(size),
+            AvMask = mean(NumMask)) %>%
+  # Calculate proportion
+  mutate(TotProp = AvInSize/AvMask)
+
+# Now let's check the convergence into the amount of clusters.
+ClustSize %>%
+  group_by(step, run, group) %>%
+  # Select number of clusters per analyses (i.e. highest index)
+  top_n(n=1, index) %>%
+  # Calculate average over runs
+  ungroup() %>%
+  group_by(step) %>%
+  summarise(AvgCount = mean(index)) %>%
+  mutate(SampleSize = step * 10) %>%
+  filter(SampleSize == 700)
 
 # Average cluster size within one study
 # For each sample size, I calculate the average cluster size within one study
@@ -102,11 +167,24 @@ AvgClustS <- ClustSize %>%
   ggplot(., aes(x = SampleSize, y = AWCS)) + 
   geom_point(size = 0.75) +
   geom_smooth(method = 'loess', colour = '#8856a7') + 
-  scale_x_continuous('Sample size') + 
-  scale_y_continuous('Average cluster size within one fMRI study') +
-  theme_bw()
+  scale_x_continuous(breaks = subjBreak, name="Sample size") + 
+  scale_y_continuous('Number of voxels', labels = scales::scientific) +
+  labs(title = 'Average cluster size in an fMRI group analysis',
+       subtitle = 'Z = 2.3 and FWER = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length = unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
 AvgClustS
-
 
 # Average cluster size over both replications of largest cluster: percentage of masked voxels
 # Here we focus on the largest cluster over both groups.
@@ -136,7 +214,6 @@ PropLargGroupC <- ClustSize %>%
   theme_bw()
 PropLargGroupC
 
-
 # Average cluster size for each replications of largest cluster: percentage of masked voxels
 # Here we focus on the largest cluster in each group.
 # We measure its size and then calculate the proportion it 
@@ -155,17 +232,29 @@ PropLargC <-
   ggplot(., aes(x = SampleSize, y = PercClust, group = factor(group))) + 
   geom_point(aes(colour = factor(group)), size = 0.75) +
   geom_smooth(method = 'loess', colour = '#8856a7') + 
-  scale_x_continuous('Sample size') + 
-  scale_y_continuous('Proportion of all masked voxels within largest cluster') +
+  scale_x_continuous(breaks = subjBreak, name="Sample size") + 
+  scale_y_continuous('Proportion') +
   scale_colour_manual('Replication', labels = c('1','2'), values = c('#045a8d',
                         '#74a9cf')) +
-  theme_bw() + 
+  # Title
+  labs(title = 'Proportion of all masked voxels within largest cluster',
+       subtitle = 'Z = 2.3 and FWER = 0.05') +
   # Increase size in legend
   guides(colour = guide_legend(override.aes = list(size=4))) +
-  theme(legend.position = 'bottom',
-        axis.title.y = element_text(size = 9))
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain', size = 9),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length = unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
 PropLargC
-
 
 # Variability of number of selected clusters
 # We do not care about the two groups in this case, that is we calculate SD
@@ -196,18 +285,24 @@ SDClustCount <-
   mutate(SampleSize = step * 10) %>%
   # Draw line
   ggplot(., aes(x = SampleSize, y = SDcount)) +
-  geom_line(size = 0.5) + 
-  scale_x_continuous('Sample size') + 
-  scale_y_continuous('Cluster count') +
-  ggtitle('Standard deviation of \n cluster count') +
+  geom_line(size = 0.9) + 
+  scale_x_continuous(breaks = subjBreak, 'Sample size') + 
+  scale_y_continuous('Standard deviation on number of clusters') +
+  labs(title = 'Variability of number of clusters',
+       subtitle = 'Z = 2.3 and FWER = 0.05') +
   theme_classic() +
-  theme(panel.grid.major = element_line(size = 0.4),
-        panel.grid.minor = element_line(size = 0.4),
-        axis.title.x = element_text(size = 5, face = 'bold'),
-        axis.title.y = element_text(size = 5, face = 'bold'),
-        axis.text = element_text(size = 4, face = 'bold'),
-        title = element_text(size = 5, face = 'bold'),
-        plot.title = element_text(hjust = 0.5))
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length = unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
 SDClustCount
 
 # Variance (SD) in terms of amount of voxels of largest cluster
@@ -226,41 +321,11 @@ SDClustSize <-
             sdSize = sd(size)) %>%
   mutate(SampleSize = step * 10) %>%
   ggplot(., aes(x = SampleSize, y = sdSize)) + 
-  geom_line(size = 0.5) + 
-  scale_x_continuous('Sample size') + 
-  scale_y_continuous('Cluster size') + 
-  #ggtitle('Number of voxels in largest clusters \n (SD)') +
-  labs(subtitle = 'Standard deviation of number of voxels in largest cluster') +
-  #ggtitle('Standard deviation of \n number of voxels in largest cluster') +
-  theme_classic() +
-  theme(panel.grid.major = element_line(size = 0.4),
-        panel.grid.minor = element_line(size = 0.4),
-        axis.title.x = element_text(size = 5, face = 'bold'),
-        axis.title.y = element_text(size = 5, face = 'bold'),
-        axis.text = element_text(size = 4, face = 'bold'),
-        title = element_text(size = 5, face = 'bold'),
-        plot.title = element_text(hjust = 0.5))
-SDClustSize
-
-# OHBM 2018 version
-SDClustSize <- 
-  ClustSize %>%
-  group_by(step, run, group) %>%
-  # Filter only largest cluster
-  top_n(n=1, size) %>%
-  ungroup() %>%
-  # now calculate variance
-  group_by(step) %>%
-  summarise(amount = max(index),
-            avgSize = mean(size),
-            varSize = var(size),
-            sdSize = sd(size)) %>%
-  mutate(SampleSize = step * 10) %>%
-  ggplot(., aes(x = SampleSize, y = sdSize)) + 
-  geom_line(size = 0.5) + 
-  scale_x_continuous('Sample size') + 
-  scale_y_continuous('Standard Deviation') + 
-  labs(title = 'Variability of (largest) cluster size (in number of voxels)') +
+  geom_line(size = 0.9) + 
+  scale_x_continuous(breaks = subjBreak, 'Sample size') +
+  scale_y_continuous('Standard deviation on number of voxels', labels = scales::scientific) +
+  labs(title = 'Variability of size of largest cluster',
+       subtitle = 'Z = 2.3 and FWER = 0.05') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
@@ -268,63 +333,76 @@ SDClustSize <-
         axis.title.y = element_text(face = 'plain'),
         axis.text = element_text(size = 11, face = 'plain'),
         axis.ticks = element_line(size = 1.3),
-        axis.ticks.length=unit(.20, "cm"),
+        axis.ticks.length = unit(.20, "cm"),
         axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
         title = element_text(face = 'plain'),
         plot.title = element_text(hjust = 0.5),
         legend.position = 'bottom')
 SDClustSize
+
+# # OHBM 2018 version
+# SDClustSize <- 
+#   ClustSize %>%
+#   group_by(step, run, group) %>%
+#   # Filter only largest cluster
+#   top_n(n=1, size) %>%
+#   ungroup() %>%
+#   # now calculate variance
+#   group_by(step) %>%
+#   summarise(amount = max(index),
+#             avgSize = mean(size),
+#             varSize = var(size),
+#             sdSize = sd(size)) %>%
+#   mutate(SampleSize = step * 10) %>%
+#   ggplot(., aes(x = SampleSize, y = sdSize)) + 
+#   geom_line(size = 0.5) + 
+#   scale_x_continuous('Sample size') + 
+#   scale_y_continuous('Standard deviation') + 
+#   labs(title = 'Variability of (largest) cluster size (in number of voxels)') +
+#   theme_classic() +
+#   theme(panel.grid.major = element_line(size = 0.8),
+#         panel.grid.minor = element_line(size = 0.8),
+#         axis.title.x = element_text(face = 'plain'),
+#         axis.title.y = element_text(face = 'plain'),
+#         axis.text = element_text(size = 11, face = 'plain'),
+#         axis.ticks = element_line(size = 1.3),
+#         axis.ticks.length=unit(.20, "cm"),
+#         axis.line = element_line(size = .75),
+#         title = element_text(face = 'plain'),
+#         plot.title = element_text(hjust = 0.5),
+#         legend.position = 'bottom')
+# SDClustSize
 
 
 ##########################################
 ##### UNIQUE VS OVERLAPPING CLUSTERS #####
 ##########################################
 
+
 # Here we calculate the number of overlapping clusters
 # We look at each test and retest and compare those two images.
 # If one voxel of the cluster is found in the other cluster, then they are
 # overlapping!
-# We average over all runs for each sample size to obtain the total amount 
-# of clusters in both images (tests) and the number of overlapping clusters.
-
+# We average over all runs for each sample size and then average over the test and replication
+# to obtain the average number of overalapping vs non-overlapping clusters.
 OverlClust1Vox <- numUniqClust %>% 
-  # Take overlapping clusters instead of unique clusters
-  mutate(OverlClust = TotClus - UniClus) %>%
   # Gather clusters in one column
-  gather(key = 'cluster', value = 'count', 1,2,5) %>%
+  gather(key = 'cluster', value = 'count', 1,2,3,4,5,6) %>%
   mutate(SampleSize = step * 10) %>%
-  filter(cluster != 'UniClus') %>%
+  # Filter out the average unique and overlapping clusters
+  filter(cluster %in% c('AvUniClus', 'AvOverlCluster')) %>%
   group_by(cluster) %>% 
   # Plot
   ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
   geom_smooth(aes(colour = cluster), size = 1.7) +
-  scale_x_continuous('Sample Size') +
-  scale_y_continuous('Count (clusters)') +
+  scale_x_continuous(breaks = subjBreak, 'Sample size') +
+  scale_y_continuous('Average number of clusters') +
   scale_color_manual('', values = c('#1b9e77','#d95f02'),
                      labels = c('Overlapping clusters',
-                                'Total amount of clusters')) + 
-  theme_bw() +
-  theme(legend.position = 'bottom')
-OverlClust1Vox
-
-
-# For OHBM, we have:
-OverlClust1Vox <- numUniqClust %>% 
-  # Take overlapping clusters instead of unique clusters
-  mutate(OverlClust = TotClus - UniClus) %>%
-  # Gather clusters in one column
-  gather(key = 'cluster', value = 'count', 1,2,5) %>%
-  mutate(SampleSize = step * 10) %>%
-  filter(cluster != 'UniClus') %>%
-  group_by(cluster) %>% 
-  # Plot
-  ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
-  geom_smooth(aes(colour = cluster), size = 1.7) +
-  scale_x_continuous('Sample Size') +
-  scale_y_continuous('Count (clusters)') +
-  scale_color_manual('', values = c('#1b9e77','#d95f02'),
-                     labels = c('Overlapping clusters',
-                                'Total amount of clusters')) + 
+                                'Non-overlapping clusters')) + 
+  labs(title = 'Overlapping versus non-overlapping clusters',
+       subtitle = 'Z = 2.3 and FWER = 0.05') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
@@ -332,12 +410,45 @@ OverlClust1Vox <- numUniqClust %>%
         axis.title.y = element_text(face = 'plain'),
         axis.text = element_text(size = 11, face = 'plain'),
         axis.ticks = element_line(size = 1.3),
-        axis.ticks.length=unit(.20, "cm"),
+        axis.ticks.length = unit(.20, "cm"),
         axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
         title = element_text(face = 'plain'),
-        plot.title = element_text(hjust = 0.5),
-        legend.position = 'top')
+        plot.title = element_text(hjust = 0.5, size = 13),
+        legend.position = 'bottom')
 OverlClust1Vox
+
+
+# For OHBM (not paper), we have:
+# OverlClust1Vox <- numUniqClust %>% 
+#   # Take overlapping clusters instead of unique clusters
+#   mutate(OverlClust = TotClus - UniClus) %>%
+#   # Gather clusters in one column
+#   gather(key = 'cluster', value = 'count', 1,2,5) %>%
+#   mutate(SampleSize = step * 10) %>%
+#   filter(cluster != 'UniClus') %>%
+#   group_by(cluster) %>% 
+#   # Plot
+#   ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
+#   geom_smooth(aes(colour = cluster), size = 1.7) +
+#   scale_x_continuous('Sample size') +
+#   scale_y_continuous('Count (clusters)') +
+#   scale_color_manual('', values = c('#1b9e77','#d95f02'),
+#                      labels = c('Overlapping clusters',
+#                                 'Total amount of clusters')) + 
+#   theme_classic() +
+#   theme(panel.grid.major = element_line(size = 0.8),
+#         panel.grid.minor = element_line(size = 0.8),
+#         axis.title.x = element_text(face = 'plain'),
+#         axis.title.y = element_text(face = 'plain'),
+#         axis.text = element_text(size = 11, face = 'plain'),
+#         axis.ticks = element_line(size = 1.3),
+#         axis.ticks.length=unit(.20, "cm"),
+#         axis.line = element_line(size = .75),
+#         title = element_text(face = 'plain'),
+#         plot.title = element_text(hjust = 0.5),
+#         legend.position = 'top')
+# OverlClust1Vox
 
 
 ###############################################
@@ -347,9 +458,9 @@ OverlClust1Vox
 
 # Here we calculate the amount of voxels within each cluster that are also
 # found in a cluster in the retest-image.
-# So this is acutally the union of clustered voxels. 
+# So this is acutally the intersection of clustered voxels. 
 # We then fit a smoothed regression over all runs and sample sizes
-UnionCluster <- propOverVox %>%
+IntsCluster <- propOverVox %>%
   # Mutate proportion
   mutate(propOver = OverVox/TotVox,
          SampleSize = step * 10) %>%
@@ -358,10 +469,24 @@ UnionCluster <- propOverVox %>%
   ggplot(., aes(x = SampleSize, y = propOver)) + 
   geom_point(size = 0.75) +
   geom_smooth(method = 'loess', colour = '#8856a7') + 
-  scale_x_continuous('Sample size') + 
-  scale_y_continuous('Union of overlapping clustered voxels') +
-  theme_bw()
-UnionCluster
+  scale_x_continuous(breaks = subjBreak, 'Sample size') + 
+  scale_y_continuous('Proportion') +
+  labs(title = 'Intersecting over the total number of clustered voxels',
+     subtitle = 'Z = 2.3 and FWER = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length = unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+IntsCluster
 
 
 ##
@@ -379,8 +504,8 @@ ggsave(filename = paste0(getwd(), '/clusterSizes.png'),
        width = 20, height = 14, units = 'cm', scale = 0.9)
 
 
-# Combine AvgClustS, PropLargC, OverlClust1Vox and UnionCluster
-plot_grid(AvgClustS, PropLargC, OverlClust1Vox, UnionCluster,
+# Combine AvgClustS, PropLargC, OverlClust1Vox and IntsCluster
+plot_grid(AvgClustS, PropLargC, OverlClust1Vox, IntsCluster,
           labels = c("A", "B", "C", "D"), nrow = 2, align = "hv",
           axis = 'tblr')
 ggsave(filename = paste0(getwd(), '/clusterStab.png'),
@@ -397,6 +522,17 @@ plot_grid(SDClustCount, SDClustSize, nrow = 1, align = 'hv', axis = 'tblr')
 ggsave(filename = paste0(getwd(), '/stabilitySD.png'),
        plot = ggplot2::last_plot(), 
        width = 12, height = 6, units = 'cm')
+
+# Combine AvgClustS, PropLargC, OverlClust1Vox, IntsCluster, SDClustCount and SDClustSize
+# --> function unstable, sometimes need to re-run if crashes!
+plot_grid(AvgClustS, PropLargC, 
+          SDClustCount, SDClustSize, 
+          OverlClust1Vox, IntsCluster, 
+          labels = c("A", "B", "C", "D", "E", "F"), nrow = 3, align = "hv",
+          axis = 'tblr')
+ggsave(filename = paste0(getwd(), '/FullStability.png'),
+       plot = ggplot2::last_plot(),
+       width = 26, height = 32, units = 'cm', scale = 1)
 
 
 
