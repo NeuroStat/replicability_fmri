@@ -231,7 +231,7 @@ ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) +
 # Set window 
 quartz.options(width=18,height=12)
 
-# Version OHBM 2018 (and paper?)
+# Version OHBM 2018 (and paper!)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 KappaPlot <- ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) + 
   geom_boxplot(outlier.size = .7, outlier.color = 'orange', size = 0.3) +

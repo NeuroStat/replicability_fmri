@@ -79,7 +79,6 @@ MatrixCorrelation <- readRDS(paste(LocIntRes,'/MatrixCorrelation.rda', sep = '')
 sampleSize <- rep(seq(10,700,by=10), NRUNS)
 
 # Variables for plotting
-subjBreak <- c(seq(10,110,by=20), seq(150,700, by=50))
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 
 ##
@@ -121,7 +120,7 @@ overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) +
   theme_bw()
 overlapBoxPlot
 
-# Version for OHBM 2018 (and paper?)
+# Version for OHBM 2018 (and paper!)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
   geom_boxplot(outlier.size = .7, outlier.color = 'orange') +
@@ -267,7 +266,7 @@ corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) +
   theme_bw()
 corrBoxPlot
 
-# Version for OHBM 2018 (and paper?)
+# Version for OHBM 2018 (and paper!)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
   geom_boxplot(outlier.size = .7, outlier.colour = 'orange') +
