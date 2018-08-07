@@ -153,6 +153,11 @@ Overlap %>% as_tibble() %>%
   summarise(AvOver = mean(overlap)) %>%
   filter(AvOver == max(AvOver))
 
+# Median overlap at N = 30
+Overlap %>%
+  filter(sampleSize == 30) %>%
+  summarise(med = median(overlap))
+
 #################
 ## Points for overlap and ADAPTIVE THRESHOLDING 
 #################
@@ -296,6 +301,12 @@ Correlation %>% as_tibble() %>%
   group_by(sampleSize) %>%
   summarise(MedPearson = median(PearsonCorr)) %>%
   filter(MedPearson >= 0.80)
+
+# Median rho at N = 30
+Correlation %>% as_tibble() %>%
+  group_by(sampleSize) %>%
+  summarise(MedPearson = median(PearsonCorr)) %>%
+  filter(sampleSize == 30)
 
 ##
 ###############
