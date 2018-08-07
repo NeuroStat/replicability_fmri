@@ -265,7 +265,11 @@ Kappa %>%
   summarise(MedKap = median(kappa)) %>%
   filter(MedKap >= 0.80)
 
-
+# Median K when N = 30?
+Kappa %>%
+  group_by(SampleSize) %>%
+  summarise(MedKap = median(kappa)) %>%
+  filter(SampleSize == 30)
 
 ##
 ###############
