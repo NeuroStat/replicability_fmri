@@ -89,19 +89,55 @@ propOverVox <- readRDS(paste(LocIntRes, 'propOverVox.rda', sep = ''))
 ##### CLUSTER SIZES AND COUNTS #####
 ####################################
 
-# Average cluster size per index for N = 700
+# Average cluster size for N = 700
 ClustSize %>%
   mutate(SampleSize = step * 10) %>%
   dplyr::select(index, size, run, group, SampleSize) %>%
-  group_by(index, group, SampleSize) %>%
-  filter(SampleSize >= 700) %>% 
-  # Calculate average cluster size per index and group over all runs
-  summarise(avSize = mean(size)) %>%
+  group_by(SampleSize) %>%
+  filter(SampleSize == 700) %>% 
+  # Calculate average cluster size
+  summarise(avSize = mean(size))
+
+# Proportion of clusters with cluster size > 10e+04 at N = 100
+ClustSize %>%
+  mutate(SampleSize = step * 10) %>%
+  dplyr::select(index, size, run, group, SampleSize) %>%
+  # Calculate average within-study cluster size
+  group_by(SampleSize, run, group) %>%
+  summarise(avCS = mean(size)) %>%
+  # Filter at N = 100
+  filter(SampleSize == 100) %>% 
   ungroup() %>%
-  group_by(index) %>%
-  summarise(AvInSize = mean(avSize))
+  mutate(PercRank = cume_dist(desc(avCS))) %>%
+  # Sort
+  arrange(avCS) %>%
+  # Cut-off
+  filter(avCS >= 10^4)
+
+# Same calculation:
+ClustSize %>%
+  mutate(SampleSize = step * 10) %>%
+  dplyr::select(index, size, run, group, SampleSize) %>%
+  # Calculate average within-study cluster size
+  group_by(SampleSize, run, group) %>%
+  summarise(avCS = mean(size)) %>%
+  # Filter at N = 100
+  filter(SampleSize == 100) %>% 
+  ungroup() %>%
+  # Sort
+  arrange(avCS) %>%
+  mutate(TotalOb = n()) %>%
+  # Cut-off
+  filter(avCS >= 10^4) %>%
+  # Remaining number of clusters
+  mutate(RemOb = n()) %>%
+  # Proportion
+  mutate(ProbLarge = RemOb/TotalOb)
+
 
 # Proportion of masked voxels in a cluster
+# --> note index 2 is also the large cluster, but in two analyses there is 
+#     a smaller cluster, then with index = 1.
 ClustSize %>%
   # Create sample size
   mutate(SampleSize = step * 10) %>%
@@ -122,6 +158,20 @@ ClustSize %>%
             AvMask = mean(AvMask)) %>%
   # Calculate proportion
   mutate(TotProp = SumInd/AvMask)
+
+# Proportion of masked voxels in a cluster
+# --> but now averaging over the index
+ClustSize %>%
+  # Create sample size
+  mutate(SampleSize = step * 10) %>%
+  # Select largest sample size
+  filter(SampleSize == 700) %>%
+  dplyr::select(index, size, group, NumMask) %>%
+  # Average over both groups and index
+  summarise(AvSize = mean(size),
+            AvMask = mean(NumMask)) %>%
+  # Calculate proportion
+  mutate(TotProp = AvSize/AvMask)
 
 # Proportion of masked voxels in a cluster, separated by the two groups at N = 700
 ClustSize %>%
@@ -159,7 +209,7 @@ ClustSize %>%
 # Then add the best fitting smoothed regression line
 AvgClustS <- ClustSize %>%
   group_by(step, run, group) %>%
-  # Calculate average within cluster size
+  # Calculate average within-study cluster size
   summarise(AWCS = mean(size)) %>%
   mutate(SampleSize = step * 10) %>%
   ungroup() %>%
@@ -351,24 +401,39 @@ SDClustSize
 # If one voxel of the cluster is found in the other cluster, then they are
 # overlapping!
 # We average over all runs for each sample size and then average over the test and replication
-# to obtain the average number of overalapping vs non-overlapping clusters.
+# to obtain the average number of overlapping vs non-overlapping (and total number of) clusters.
 OverlClust1Vox <- numUniqClust %>% 
   # Gather clusters in one column
   gather(key = 'cluster', value = 'count', 1,2,3,4,5,6) %>%
   mutate(SampleSize = step * 10) %>%
-  # Filter out the average unique and overlapping clusters
-  filter(cluster %in% c('AvUniClus', 'AvOverlCluster')) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster %in% c('AvUniClus', 'AvOverlCluster', 'AvTotClus')) %>%
   group_by(cluster) %>% 
   # Plot
-  ggplot(., aes(x = SampleSize, y = count, colour = cluster)) +
-  geom_smooth(aes(colour = cluster), size = 1.7) +
+  ggplot(., aes(x = SampleSize, y = count, colour = 
+                # Recode cluster
+                factor(cluster, levels = 
+                    c('AvTotClus', 'AvOverlCluster', 'AvUniClus'), 
+                labels = 
+                    c('AvTotClus', 'AvOverlCluster', 'AvUniClus')))) +
+  geom_smooth(aes(colour = 
+                # Recode cluster
+                factor(cluster, levels = 
+                         c('AvTotClus', 'AvOverlCluster', 'AvUniClus'), 
+                       labels = 
+                         c('AvTotClus', 'AvOverlCluster', 'AvUniClus'))),
+              size = 1.7,
+              method = 'gam',
+              formula = y ~ s(x, bs = "cs")) +
   scale_x_continuous(breaks = subjBreak, 'Sample size') +
   scale_y_continuous('Average number of clusters') +
-  scale_color_manual('', values = c('#1b9e77','#d95f02'),
-                     labels = c('Overlapping clusters',
+  scale_color_manual('', values = c('#1b9e77','#984ea3', '#d95f02'),
+                     labels = c('Total number of clusters',
+                                'Overlapping clusters',
                                 'Non-overlapping clusters')) + 
-  labs(title = 'Overlapping versus non-overlapping clusters',
+  labs(title = 'Total, overlapping & non-overlapping clusters',
        subtitle = 'Z = 2.3 and FWER = 0.05') +
+  guides(colour = guide_legend(order = 3)) +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
@@ -383,6 +448,20 @@ OverlClust1Vox <- numUniqClust %>%
         plot.title = element_text(hjust = 0.5, size = 13),
         legend.position = 'bottom')
 OverlClust1Vox
+
+
+# When is average non-overlapping more or less zero?
+numUniqClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4,5,6) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster == 'AvUniClus') %>%
+  # Summarise over sample sizes
+  group_by(SampleSize) %>%
+  summarise(AvUniClus = mean(count)) %>% 
+  # Sample size when average < 0.05
+  filter(AvUniClus <= 0.05)
 
 
 ###############################################
@@ -421,6 +500,60 @@ IntsCluster <- propOverVox %>%
         plot.title = element_text(hjust = 0.5),
         legend.position = 'bottom')
 IntsCluster
+
+# Median proportion at N = 200
+propOverVox %>%
+  # Mutate proportion
+  mutate(propOver = OverVox/TotVox,
+         SampleSize = step * 10) %>%
+  # Summarise
+  group_by(SampleSize) %>%
+  summarise(MedProp = median(propOver, na.rm = TRUE)) %>%
+  # Sample size = 200
+  filter(SampleSize >= 200)
+
+# Maximum median proportion
+propOverVox %>%
+  # Mutate proportion
+  mutate(propOver = OverVox/TotVox,
+         SampleSize = step * 10) %>%
+  # Summarise
+  group_by(SampleSize) %>%
+  summarise(MedProp = median(propOver, na.rm = TRUE)) %>%
+  # Sample size
+  filter(SampleSize == max(SampleSize))
+
+
+
+##
+###############
+### Measurements at N = 30
+###############
+##
+
+# Let us limit to overlapping vs non-overlapping (and total clusters) and the intersection
+numUniqClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4,5,6) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster %in% c('AvUniClus', 'AvOverlCluster', 'AvTotClus')) %>%
+  # Summarise over sample sizes
+  group_by(SampleSize, cluster) %>%
+  summarise(MedClust = median(count)) %>% 
+  # N = 30
+  filter(SampleSize == 30)
+
+# Proportion intersecting
+propOverVox %>%
+  # Mutate proportion
+  mutate(propOver = OverVox/TotVox,
+         SampleSize = step * 10) %>%
+  # Summarise
+  group_by(SampleSize) %>%
+  summarise(MedProp = median(propOver, na.rm = TRUE)) %>%
+  # N = 30
+  filter(SampleSize == 30)
 
 
 ##
