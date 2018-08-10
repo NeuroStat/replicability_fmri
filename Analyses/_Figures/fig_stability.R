@@ -428,9 +428,9 @@ OverlClust1Vox <- numUniqClust %>%
   scale_x_continuous(breaks = subjBreak, 'Sample size') +
   scale_y_continuous('Average number of clusters') +
   scale_color_manual('', values = c('#1b9e77','#984ea3', '#d95f02'),
-                     labels = c('Total number of clusters',
-                                'Overlapping clusters',
-                                'Non-overlapping clusters')) + 
+                     labels = c('Total count',
+                                'Overlapping',
+                                'Non-overlapping')) + 
   labs(title = 'Total, overlapping & non-overlapping clusters',
        subtitle = 'Z = 2.3 and FWER = 0.05') +
   guides(colour = guide_legend(order = 3)) +
