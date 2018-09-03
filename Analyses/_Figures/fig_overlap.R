@@ -2,7 +2,7 @@
 #### TITLE:     Plot within sample size overlap (Dice + Pearson) with increasing sample sizes
 #### Contents: 	
 #### 
-#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/SplitSubjects
+#### Source Files: /replicability_fmri/SplitSubjects
 #### First Modified: 19/04/2018
 #### Notes: 
 #################
