@@ -2,7 +2,7 @@
 #### TITLE:     Plot within sample size stability with increasing sample sizes.
 #### Contents: 	
 #### 
-#### Source Files: /FreddieFreeloader/Analyses/_Figures/
+#### Source Files: /replicability_fmri/Analyses/_Figures/
 #### First Modified: 19/04/2018
 #### Notes: 
 #################
