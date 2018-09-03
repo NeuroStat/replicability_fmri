@@ -2,7 +2,7 @@
 #### TITLE:     Plot index of coherence under increasing sample size.
 #### Contents: 	
 #### 
-#### Source Files: /FreddieFreeloader/Analyses/_Figures
+#### Source Files: /replicability_fmri/Analyses/_Figures
 #### First Modified: 31/05/2018
 #### Notes: 
 #################
