@@ -15,11 +15,8 @@ We use the *IMAGEN* database from where we subsample tests and independent repli
 The actual *IMAGEN* database is separated from this repository. Furthermore, the **raw** results are too large to save into a Github repository and hence also separated. Pre-processed *intermediate* R files are saved in /2_Analyses/_IntData. 
 To generate the figures, one then only needs this folder and the /2_Analyses/_Figures folder. 
 
-## Authors
-* [Han Bossier]
-* [Sanne Roels]
-* [Ruth Seurinck]
-* [Beatrijs Moerkerke]
+## Contact
+* [Han Bossier]: han.bossier@ugent.be 
  
 First Modified: 26/06/15
 
