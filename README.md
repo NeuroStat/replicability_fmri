@@ -16,7 +16,7 @@ The actual *IMAGEN* database is separated from this repository. Furthermore, the
 To generate the figures, one then only needs this folder and the /2_Analyses/_Figures folder. 
 
 ## Contact
-* [Han Bossier]: han.bossier@ugent.be 
+* [Han Bossier] : han.bossier@ugent.be 
  
 First Modified: 26/06/15
 
