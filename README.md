@@ -18,7 +18,7 @@ To generate the figures, one then only needs this folder and the /2_Analyses/_Fi
 ## Contact
 * [Han Bossier] : han.bossier@ugent.be 
  
-First Modified: 26/06/15
+First Created: 26/06/15
 
 
 [Han Bossier]: http://telefoonboek.ugent.be/nl/people/802001626303
