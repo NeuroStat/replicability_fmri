@@ -28,5 +28,6 @@ cd $srcdir
 
 #----------------------------------------------------#
 # GO TIME: let us do it in chunks of 10 simulations: let ID go from 1 --> 100
-Rscript EstimateM1_maxOv.R ${PBS_ARRAYID} "HPC" 
+# Third argument is the chosen algorithm: either percentile or adaptive.
+Rscript EstimateM1_maxOv.R ${PBS_ARRAYID} "HPC" "percentile"
 #----------------------------------------------------#

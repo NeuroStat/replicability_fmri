@@ -32,10 +32,14 @@ input <- commandArgs(TRUE)
 hpcID <- try(as.numeric(as.character(input)[1]),silent=TRUE)
 # Which machine
 MACHINE <- try(as.character(input)[2],silent=TRUE)
+# Which algorithm do you want to try?
+algorithm <- try(as.character(input)[3],silent=TRUE)
+
 # If no machine is specified, then it has to be this machine!
 if(is.na(MACHINE)){
   MACHINE <- 'MAC'
   hpcID <- 1
+  algorithm <- 'percentile'
 }
 
 # Implement for loop over r iterations here: hpcID goes from 1 to 100 in master file
@@ -116,8 +120,48 @@ gen_data <- function(TrueGrid, TrueES, trueSigma, N){
 }
 
 # Percentile function, replacing the less precise adaptive thresholding function
-PercThresholding <- function(pvals, idMask, target){
-  # Under construction
+PercThresholding <- function(pvals, target, MaxPValThr = 1){
+  # NOTE: I will use dplyr functions, but avoid the pipe in this function
+  # In order not to break things in the future...
+  
+  # Set boundary on the target
+  if(target >= MaxPValThr){
+    target <- MaxPValThr
+  }
+  
+  # Switch to array of 1 dimension
+  pvals_1D <- data.frame(pvals = array(pvals, dim = prod(dim(pvals))))
+  
+  # Give every voxel an ID
+  pvals_ID <- pvals_1D
+  pvals_ID$ID <- 1:prod(dim(pvals))
+  
+  # Sort the data frame on the p-values
+  sorted <- dplyr::arrange(pvals_ID, pvals)
+  
+  # Use percentile function
+  perc <- dplyr::mutate(sorted, perc_pval = percent_rank(pvals))
+  
+  # Voxels under target get 1, 0 otherwise
+  bin_pval <- dplyr::mutate(perc, sel_pval = 
+                              ifelse(perc_pval <= target, 1, 0))
+  
+  # Now sort on the original ID value, to have voxels back in correct location
+  orig_loc <- dplyr::arrange(bin_pval,ID)
+  
+  # Binarized image --> switch back to original dimension of p-values
+  orDim_bin <- array(orig_loc$sel_pval, dim = dim(pvals))
+  
+  # The p-value that corresponds to the threshold
+  selected <- dplyr::filter(bin_pval, perc_pval <= target) 
+  thrPval <- selected[dim(selected)[1],'pvals']
+  
+  # Final percentile selected voxels
+  percSel <- selected[dim(selected)[1],'perc_pval']
+  
+  # Return percentage, signLevel and thresholded image
+  result <- list('signLevel' = thrPval,'percentage' = percSel,'ThrImage' = orDim_bin)
+  return(result)
 }
 
 # Adaptive Thresholding to be used in maximizing the overlap
@@ -181,18 +225,28 @@ AdapThresholdingM <- function(pvals, signLevel, idMask, target = NULL,
   }
   
   # Return percentage, signLevel and threshPval
-  result <- list('signLevel' = signLevel,'percentage' = percentage,'SPM' = threshPval)
+  result <- list('signLevel' = signLevel, 'percentage' = percentage, 
+                 'ThrImage' = threshPval)
   return(result)
 }
 
-# Function to maximise the overlap within a boundary of P-value threshold (i.e. MaxPValThr)
+# Function to maximise the overlap
+# Two approaches are possible:
+# * adaptive thresholding: adapts the P-value threshold within a boundary 
+#   (i.e. MaxPValThr) until target percentage is achieved
+# * percentile thresholding: takes percentile lowest P-values corresponding to
+#   target percentage
 maximizeOverlap <- function(PVal_map1, PVal_map2, idMask_map1, idMask_map2,
-                            signLevel, startingTarget, MaxPValThr){
-  # Algorithm works with a random number generator (to avoid infinite loops).
+                            signLevel, startingTarget, MaxPValThr, 
+                            algorithm = c('percentile', 'adaptive')){
+  # Adaptive algorithm works with a random number generator (to avoid infinite loops).
   # However, I want to preserve seeds generated in global environment.
   # Hence, we get the global seed, save it, and set it back when exiting this function.
   old <- .Random.seed
   on.exit( { .Random.seed <<- old } )
+  
+  # Check algorithm options
+  algorithm <- match.arg(algorithm)
   
   # Check dimensions of P-values and masks 
   # First check if all are either in one vector, or in more dimensions
@@ -230,30 +284,35 @@ maximizeOverlap <- function(PVal_map1, PVal_map2, idMask_map1, idMask_map2,
   }
   
   # Local function to return overlap based on two (adaptively) thresholded maps
-  checkOverlap <- function(PVal_map1, PVal_map2, idMask_map1, idMask_map2,
-                           signLevel, target_perc){
+  checkOverlap <- function(PVal_map1, PVal_map2, target_perc){
     
     # First do thresholding based on starting target
-    adapG1 <- AdapThresholdingM(pvals = PVal_map1, signLevel = signLevel,
-                                idMask = idMask_map1, target = target_perc,
+    # Two approaches: using adaptive thresholding or using a percentile approach
+    if(algorithm == 'adaptive'){
+      adapG1 <- AdapThresholdingM(pvals = PVal_map1, signLevel = signLevel,
+                                 idMask = idMask_map1, target = target_perc,
                                 seed_fu = 1112, MaxPValThr = MaxPValThr)
-    adapG2 <- AdapThresholdingM(pvals = PVal_map2, signLevel = signLevel,
-                                idMask = idMask_map2, target = target_perc,
+      adapG2 <- AdapThresholdingM(pvals = PVal_map2, signLevel = signLevel,
+                                 idMask = idMask_map2, target = target_perc,
                                 seed_fu = 1112, MaxPValThr = MaxPValThr)
+    }
+    if(algorithm == 'percentile'){
+      adapG1 <- PercThresholding(pvals = PVal_map1, target = target_perc)
+      adapG2 <- PercThresholding(pvals = PVal_map2, target = target_perc)
+    }
     
     # Now calculate the current overlap
-    cur_overlap <- NeuRRoStat::overlapAct(bin_map1 = adapG1$SPM, 
-                                          bin_map2 = adapG2$SPM)
+    cur_overlap <- NeuRRoStat::overlapAct(bin_map1 = adapG1$ThrImage, 
+                                          bin_map2 = adapG2$ThrImage)
     return(cur_overlap)
   }
   
   # Check the overlap for a range of target percentages
-  targPerc <- seq(0,1,by=0.01)
+  targPerc <- seq(0,1,by=0.001)
   obsOverl <- c()
   for(i in 1:length(targPerc)){
     obsOverl <- c(obsOverl,
-        checkOverlap(PVal_map1, PVal_map2, idMask_map1, idMask_map2,
-                 signLevel, target_perc = targPerc[i]))
+        checkOverlap(PVal_map1, PVal_map2, target_perc = targPerc[i]))
   }
   
   # Make it a data frame
@@ -261,6 +320,56 @@ maximizeOverlap <- function(PVal_map1, PVal_map2, idMask_map1, idMask_map2,
   return(obsOverl)
 }
 
+# gridSearch is a function to obtain a local maximum for a function
+# that is by default increasing to 1
+gridSearch <- function(obsOverl, gapWidth, 
+                       algorithm = c('percentile', 'adaptive')){
+  # Check choice of algorithm
+  algorithm <- match.arg(algorithm)
+  
+  # If percentile approach, need to do reverse direction search
+  if(algorithm == 'percentile'){
+    # Starting from target percentage = 1
+    for(i in dim(obsOverl)[1]:1){
+      # Select the other indices with some gap in between
+      if(i != gapWidth){
+        indices <- 1:(i - gapWidth)
+        # If no value has been found outside this gap, then the estimate is
+        # the maximum target percentage
+      }else{
+        estimateM1 <- max(obsOverl[,'target_perc'])
+        break
+      }
+      # Is there a value lower than the one we observe at the moment?
+      idTargets <- as.numeric(obsOverl[i,"obs_overlap"]) <= obsOverl[indices,"obs_overlap"]
+      if(any(idTargets, na.rm = TRUE)){
+        XcutOff <- obsOverl[i,"target_perc"]
+        YcutOff <- obsOverl[i,"obs_overlap"]
+        # Save the obtained target percentage that is in the remaining part of the graph
+        remainder <- obsOverl[indices,]
+        estimateM1 <- as.numeric(unlist(remainder[idTargets,'target_perc']))
+        # If multiple values are found, then take the average
+        if(length(estimateM1) != 1){
+          estimateM1 <- mean(estimateM1, na.rm = TRUE) 
+        }
+        break
+      }
+    }
+  }
+  # Adaptive algorithm has for some reason a global maximum which is our point estimate
+  if(algorithm == 'adaptive'){
+    # Take the maximum overlap as the point estimate, there is no need to do
+    # reverse search as the function is different.
+    maxVal <- dplyr::filter(obsOverl, obs_overlap == max(obs_overlap, na.rm = TRUE))
+    estimateM1 <- as.numeric(unlist(maxVal$target_perc))
+    # If multiple values are found, then take the average
+    if(length(estimateM1) != 1){
+      estimateM1 <- mean(estimateM1, na.rm = TRUE) 
+    }
+  }
+  # Return the estimate
+  return(data.frame('m1' = estimateM1))
+}
 
 
 ##
@@ -290,9 +399,8 @@ signLevel <- 0.05
 # Boundary on the P-value threshold
 MaxPValThr <- 0.25
 
-# Starting percentage in the algorithm
+# Starting percentage in the adaptive algorithm
 startingTarget <- 0.5
-
 
 
 ##
@@ -300,9 +408,6 @@ startingTarget <- 0.5
 ### Data generation
 ###############
 ##
-
-# Empty data frame with estimated target percentages
-target_data <- data.frame() %>% as_tibble()
 
 # Empty data frame with full data
 full_data <- data.frame() %>% as_tibble()
@@ -314,8 +419,7 @@ comMask <- array(1, dim = DIM2D)
 for(ID in startIndex:endIndex){
   # Set seed
   set.seed(ID*pi)
-  print(ID)
-  
+
   # For loop over the proportion of voxels with true activation
   for(l in 1:length(baseProp)){
     # Generate the true grid for this scenario
@@ -331,44 +435,33 @@ for(ID in startIndex:endIndex){
     ObsOverl <- maximizeOverlap(PVal_map1 = array(PVals$PVal1, dim = DIM2D), 
                                PVal_map2 = array(PVals$PVal2, dim = DIM2D),
                                idMask_map1 = comMask, idMask_map2 = comMask,
-                               signLevel = signLevel, startingTarget = startingTarget,
-                               MaxPValThr = MaxPValThr) %>% as_tibble() %>%
+                               signLevel = signLevel, 
+                               startingTarget = startingTarget,
+                               MaxPValThr = MaxPValThr, 
+                               algorithm = algorithm) %>% as_tibble() %>%
       # Add info to raw data
       mutate(TruePerc = baseProp[l],
              sim = ID)
-    # Bind to the data frame
-    full_data <- bind_rows(full_data, ObsOverl)
     
     ##########################################################################
     # Return the estimated proportion of truyly active voxels
     ##########################################################################
+    # Using the function gridSearch and two widths.
+    # This is only needed for the percentile approach:
+      # We need to use the small width for proportions that are close to 1.
+      # But we need a large gip if the proportion = 1.
+    estimateM1 <- min(gridSearch(ObsOverl, gapWidth = 10, algorithm = algorithm), 
+                    gridSearch(ObsOverl, gapWidth = 100, algorithm = algorithm))
     
-    #ObsOverl %>% mutate(prev_overlap = lag(obs_overlap),
-     #                   increase = obs_overlap >= prev_overlap) %>% View()
+    # Let us add this to the raw data frame
+    ObsOverl <- mutate(ObsOverl, estM1 = estimateM1)
     
+    ##########################################################################
+    # Bind to data frame
+    ##########################################################################
+    full_data <- bind_rows(full_data, ObsOverl)
   }
 }
-
-
-
-# 
-# 
-# 
-# data.frame('target' = targPerc, 'overlap' = obsOverl) %>%
-#   ggplot(., aes(x = target, y = overlap)) + 
-#   geom_line() + 
-#   geom_vline(xintercept = 0.3)
-# 
-# 
-# 
-# 
-# 
-# ObsOverl %>% mutate(prev_overlap = lag(obs_overlap),
-#                     increase = obs_overlap >= prev_overlap)
-
-
-
-
 
 
 
@@ -379,10 +472,16 @@ for(ID in startIndex:endIndex){
 ###############
 ##
 
-
+# Keywords for the algorithm choice
+if(algorithm == 'adaptive'){
+  keyAlg <- 'adap'
+}
+if(algorithm == 'percentile'){
+  keyAlg <- 'perc'
+}
 
 # Save R object
-saveRDS(full_data, file = paste0(wd, '/Results/full_data_', hpcID, '.rds'))
+saveRDS(full_data, file = paste0(wd, '/Results/full_data_', keyAlg, '_', hpcID, '.rds'))
 
 
 
@@ -392,21 +491,14 @@ saveRDS(full_data, file = paste0(wd, '/Results/full_data_', hpcID, '.rds'))
 
 
 
-# Test code 
-adapG1 <- AdapThresholdingM(pvals = PVal_map1, signLevel = signLevel,
-                            idMask = idMask_map1, target = target_perc,
-                            seed_fu = 1112, MaxPValThr = MaxPValThr)
 
-adapG1$percentage
-adapG1$signLevel
 
-data.frame(pval = array(PVal_map1, dim = prod(dim(PVal_map1)))) %>% 
-  as_tibble() %>% 
-  arrange(pval) %>% 
-  mutate(perc = percent_rank(pval)) %>% 
-  filter(perc <= 0.25) %>% tail()
-  
-?dplyr::percent_rank
+
+
+
+
+
+
 
 
 
