@@ -369,14 +369,14 @@ ggplot(obs, aes(x=factor(size), y=count))+
 
 # Data frame with overlap and percentage
 perc <- matrix(PercAct,ncol=1)
-OverPerc <- data.frame('Value' = rbind(Overlap.tmp,perc),
+OverPerc <- data.frame('Value' = c(Overlap$overlap,perc),
                        'Size' = rep(sampleSize,2), 
                        'Type' = c(rep('Overlap',3500),rep('Percentage',3500)))
 OverPerc$Type <- as.factor(OverPerc$Type)
 OverPerc$Value <- as.numeric(OverPerc$Value)
 
 # Correlation
-corr <- round(cor(perc, Overlap.tmp, use = "complete.obs"),2)
+corr <- round(cor(perc, Overlap$overlap, use = "complete.obs"),2)
 ggplot(OverPerc, aes(x=factor(Size),y=Value)) + 
   geom_point(aes(colour=Type),position='identity',size=1.5) +
   scale_x_discrete(breaks=subjBreak, name="Sample size") +
@@ -397,5 +397,34 @@ ggplot(AvgOverPerc, aes(x=factor(Size),y=Value,group=Type)) +
   theme(plot.title = element_text(lineheight=.2, face="bold")) +
   ggtitle('Average overlap and percentage of masked voxels active.')+
   annotate("text", y = .1, x = 50, label = paste('Correlation = ', corr,sep=''),size=5)
+
+# Mimic figure from paper
+subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
+overlap_percBoxPlot <- ggplot(OverPerc, aes(x=factor(Size), y = Value)) + 
+  geom_boxplot(aes(fill = Type), outlier.size = .7, outlier.color = 'orange') +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous('Value') +
+  scale_fill_brewer('Type of value', labels = c('overlap', 'proportion'),
+                    type = 'qual', palette = 7) +
+  labs(title = 'Overlap and proportion of significant voxels',
+       subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+overlap_percBoxPlot
+
+
+
+
+
 
 

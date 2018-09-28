@@ -334,3 +334,42 @@ Kappa_both %>%
   group_by(SampleSize, threshold) %>%
   summarise(MedKap = median(value)) %>%
   filter(MedKap >= 0.80)
+
+
+
+##
+###############
+### Plot lamda: estimated proportion of truly active voxels
+###############
+##
+
+subjBreak <- c(10, seq(50, NTOT, by = 50))
+EMParam %>% filter(final == TRUE) %>% 
+  filter(threshold == 'fdr') %>%
+  # Remove columns that don't provide information
+  select(-num.iter, -final, -sequence) %>%
+  # Transform step to sample size
+  mutate(SampleSize = step * 10) %>%
+  # now plot
+  ggplot(., aes(x = factor(SampleSize), y = lambda)) + 
+  geom_boxplot(outlier.size = .7, outlier.color = 'orange', size = 0.3) +
+  scale_x_discrete(name = "Sample size", breaks = subjBreak) +
+  scale_y_continuous(name=
+              expression(Proportion~of~truly~active~voxels~~(lambda))) +
+  labs(title = 'Proportion of activated voxels',
+       subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+
+
+  
