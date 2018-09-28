@@ -17,9 +17,9 @@
 ###############
 ##
 
-## Fixate percentage of activated voxels at around 20% (range is between 19 and 21).
+## Fixate percentage of activated voxels at around target of 20% (range is between 19 and 21).
 ## We do this by starting with a starting value of significance level and then updating p-value by steps of .01.
-## If percentage < 0.19, then increase p-value. If >.21, decrease p-value.
+## If percentage < (target - 0.01) percentage, then increase p-value. If > (target + 0.01), decrease p-value.
 
 ## The data comes from the SplitSubjects script.
 
@@ -69,9 +69,14 @@ signLevel <- 0.05
 ##
 
 # Adaptive Thresholding
-AdapThresholding <- function(pvals,DIM,signLevel,idMask){
+AdapThresholding <- function(pvals,DIM,signLevel,idMask, target = NULL){
 	# No adjustment for multiple testing (not reallly needed, not of interest)
 	adjPvals <- pvals
+	
+	# If no target is set, take 20% as target (original value of first graph)
+	if(is.null(target)){
+    target <- 0.20
+	}
 
 	# Threshold at signLevel p-value: significant P-values get 1!
 	idP <- adjPvals <= signLevel
@@ -84,19 +89,22 @@ AdapThresholding <- function(pvals,DIM,signLevel,idMask){
 	Vt <- sum(idP,na.rm=TRUE)
 	percentage <- Vt/maskedVox
 
-	# Now if percentage is below .19, increase threshold (by .001), if above .21; decrease by .01
-	while(percentage < 0.19 | percentage > 0.21){
-		if(percentage < 0.19){
+	# Now if percentage is below (target - 0.01), increase threshold (by .001), 
+	#     if above (target + 0.01); decrease by .01
+	while(percentage < (target - 0.01) | percentage > (target + 0.01)){
+		if(percentage < (target - 0.01)){
 			if(signLevel >= 0.995){
 				signLevel <- signLevel + 0.00001
 			}else{
+			  # Using random values to increase the significance level
 				signLevel <- signLevel + runif(1,min=.0001,max=0.005)
 			}
 		}
-		if(percentage > 0.21){
+		if(percentage > (target + 0.01)){
 			if(signLevel <= 0.005){
 				signLevel <- signLevel - 0.00001
 			}else{
+			  # Using random values to decrease the significance level
 				signLevel <- signLevel - runif(1,min=.0001,max=0.005)
 			}
 		}
@@ -166,19 +174,22 @@ for(i in 1:NRUNS){
 		pvalsG1 <- 1-pnorm(imageG1)
 		pvalsG2 <- 1-pnorm(imageG2)
 
-		# Function AdapThresholding: calculates adjusted p-values, then finds correct significance level according to percentage.
-		adapG1 <- AdapThresholding(pvalsG1,DIM,signLevel,idMaskG1)
+		# Function AdapThresholding: calculates adjusted p-values, then finds 
+		# correct significance level according to target percentage.
+		# The latter might be obtained in the MaxAdapThresh.R script, which
+		# maximises the overlap given the target percentage.
+		adapG1 <- AdapThresholding(pvalsG1,DIM,signLevel,idMaskG1, target = 0.3541)
 			signLevel <- adapG1$signLevel
 			perc <- adapG1$percentage
 
 		# Image G2
-		adapG2 <- AdapThresholding(pvalsG2,DIM,signLevel,idMaskG2)
+		adapG2 <- AdapThresholding(pvalsG2,DIM,signLevel,idMaskG2, target = 0.3541)
 			signLevel <- round(mean(c(signLevel,adapG2$signLevel)),6)
 			perc <- round(mean(c(perc,adapG2$percentage)),4)
 
 
 		###################################################################
-		# Calculate overlap: summing image K and K-1 to know the voxels in both maps (1+1 = 2)
+		# Calculate overlap: summing images to know the voxels in both maps (1+1 = 2)
 		sumMap <- adapG1$SPM+adapG2$SPM
 		# Minus map: know the voxels different in both images
 		minusMap <- adapG1$SPM-adapG2$SPM
@@ -214,13 +225,13 @@ if(i==NRUNS) print("100% done")
 ##
 
 # Save matrix with overlap using adaptive thresholding
-saveRDS(MatrixOverlapAdap, paste(SaveLoc,'/MatrixOverlapAdap.rda', sep = ''))
+#saveRDS(MatrixOverlapAdap, paste(SaveLoc,'/MatrixOverlapAdap.rda', sep = ''))
 
 # Save the percentage of activated voxels
-saveRDS(PercActAdap, paste(SaveLoc,'/PercActAdap.rda', sep = ''))
+#saveRDS(PercActAdap, paste(SaveLoc,'/PercActAdap.rda', sep = ''))
 
 # Save the significance thresholding levels
-saveRDS(SignLevels, paste(SaveLoc,'/SignLevels.rda', sep = ''))
+#saveRDS(SignLevels, paste(SaveLoc,'/SignLevels.rda', sep = ''))
 
 
 
