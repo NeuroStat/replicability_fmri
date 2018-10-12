@@ -484,7 +484,7 @@ IntsCluster <- propOverVox %>%
   geom_smooth(method = 'loess', colour = '#8856a7') + 
   scale_x_continuous(breaks = subjBreak, 'Sample size') + 
   scale_y_continuous('Proportion') +
-  labs(title = 'Intersecting over the total number of clustered voxels',
+  labs(title = 'Proportion of overlapping clustered voxels',
      subtitle = 'Z = 2.3 and FWER = 0.05') +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
