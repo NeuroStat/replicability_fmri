@@ -144,3 +144,130 @@ apply(MatrixOverlap,c(2),MissingValues)
 ## Save R objects
 saveRDS(MatrixOverlap, file=paste(SaveLoc,'/MaitraOverlap.rda',sep=''))
 saveRDS(PercAct,file=paste(SaveLoc,'/PercActMaitraOverlap.rda',sep=''))
+
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+
+##
+###############
+### Repeat the code from above (I KNOW I COPIED IT, SORRY GUYS) with other levels for FDR 
+###############
+##
+
+# Thresholds considered
+FDR_Pth <- 0.2
+FDR_Pth <- 0.1
+FDR_Pth <- 0.01
+FDR_Pth <- 0.001
+
+# Matrix were data will get into
+MatrixOverlapFDR <- array(NA,dim=c(NSTEP,NRUNS))
+
+# Print statement
+PriST <- (c(1:NRUNS)/NRUNS)[seq(1,NRUNS,length.out=10)][-10]
+
+# For loop over all runs
+for(i in 1:NRUNS){
+  IDprint <- c(i/NRUNS)==PriST
+  if(any(IDprint)){
+    print(paste(round(PriST,2)[IDprint]*100, "% done"))
+  }
+  # For loop over all steps
+  for(j in 1:NSTEP){
+    # We read in non-thresholded z-images
+    imageG1Z <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group1','/stats/zstat1.nii',sep=''))[,,], silent=TRUE)
+    if(!class(imageG1Z)=='array') next
+    # Read in the mask
+    maskG1 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group1','/masked.nii.gz',sep=''))[,,],silent=TRUE)
+    idMaskG1 <- maskG1==0
+    imageG1Z[idMaskG1] <- NA
+    # Convert to P-values
+    imageG1P <- pnorm(q = imageG1Z, lower.tail = FALSE)
+    # Adjust using Benjaminig and Hochberg approach
+    imageG1aP <- array(p.adjust(p = imageG1P, method = 'BH'), dim = DIM)
+    # Threshold at P_fdr < FDR_Pth
+    imageG1t <- imageG1aP
+    imageG1t[imageG1aP <= FDR_Pth] <- 1
+    imageG1t[imageG1aP > FDR_Pth] <- 0
+    
+    # Repeat with the replication
+    imageG2Z <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group2','/stats/zstat1.nii',sep=''))[,,], silent=TRUE)
+    if(!class(imageG2Z)=='array') next
+    # Read in the mask
+    maskG2 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group2','/masked.nii.gz',sep=''))[,,],silent=TRUE)
+    idMaskG2 <- maskG2==0
+    imageG2Z[idMaskG2] <- NA
+    # Convert to P-values
+    imageG2P <- pnorm(q = imageG2Z, lower.tail = FALSE)
+    # Adjust using Benjaminig and Hochberg approach
+    imageG2aP <- array(p.adjust(p = imageG2P, method = 'BH'), dim = DIM)
+    # Threshold at P_fdr < 0.1
+    imageG2t <- imageG2aP
+    imageG2t[imageG2aP <= FDR_Pth] <- 1
+    imageG2t[imageG2aP > FDR_Pth] <- 0
+    
+    # Summing image K and K-1 to know the voxels in both maps (1+1 = 2)
+    sumMap <- imageG1t+imageG2t
+    # Minus map: know the voxels different in both images
+    minusMap <- imageG1t-imageG2t
+    # Mask this image
+    idMask <- maskG1*maskG2
+    minusMap[idMask] <- NA
+    
+    # Union of activated voxels, voxels in image G1 and voxels in image G2
+    Vjt <- length(sumMap[which(sumMap==2)])
+    Vt <- length(imageG1t[which(imageG1t==1)])
+    Vj <- length(imageG2t[which(imageG2t==1)])
+    # Voxels different from both images
+    VjtS <- length(minusMap[which(minusMap==0)])
+
+    # Put overlap in matrix
+    MatrixOverlapFDR[j,i] <- round((Vjt)/(Vj + Vt - Vjt),6)
+    
+    # Now calculate percentage of activated masked voxels in imageG1t and imageG2t
+    baseG1 <- sum(maskG1)
+    percG1 <- Vt/baseG1
+    
+    baseG2 <- sum(maskG2)
+    percG2 <- Vt/baseG2
+    #PercAct[j,i] <- round(mean(c(percG1,percG2)),4)
+    
+    # Remove objects
+    rm(Vjt,Vt,Vj,imageG1t,imageG2t,sumMap)
+  }
+  if(i==NRUNS) print("100% done")
+}
+
+# Transform NaN values to 0
+MatrixOverlapFDR[is.nan(MatrixOverlapFDR)] <- 0
+
+# Check for missing values (TRUE = missing somewhere)
+complete.cases(t(MatrixOverlapFDR))
+MissingValues <- function(...){
+  any(is.na(...))
+}
+apply(MatrixOverlapFDR,c(2),MissingValues)
+
+# Identifier for the files
+IDTh <- sub(pattern = '.', replacement = '_', x = FDR_Pth, fixed = TRUE)
+
+## Save R objects
+saveRDS(MatrixOverlapFDR, file=paste(SaveLoc,'/MaitraOverlapFDR',IDTh, '.rda',sep=''))
+
+
+
+
+
+
+
+
+
+
+
+
+
+

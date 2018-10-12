@@ -158,6 +158,8 @@ Overlap %>%
   filter(sampleSize == 30) %>%
   summarise(med = median(overlap))
 
+
+
 #################
 ## Points for overlap and ADAPTIVE THRESHOLDING 
 #################
@@ -296,6 +298,18 @@ corrBoxPlot
 Correlation %>%
   filter(PearsonCorr == max(PearsonCorr))
 
+# Maximum median value
+Correlation %>% as_tibble() %>%
+  group_by(sampleSize) %>%
+  summarise(MedPearson = round(median(PearsonCorr),3)) %>%
+  filter(MedPearson == max(MedPearson))
+
+# At N = 700?
+Correlation %>% as_tibble() %>%
+  group_by(sampleSize) %>%
+  summarise(MedPearson = median(PearsonCorr)) %>%
+  filter(sampleSize == 700)
+
 # When do we have a median rho of 0.80?
 Correlation %>% as_tibble() %>%
   group_by(sampleSize) %>%
@@ -339,6 +353,100 @@ ggsave(filename = paste0(getwd(), '/corrBoxPlot.png'),
        plot = corrBoxPlot,
        width = 20, height = 14, units = 'cm', scale = 0.9)
 
+
+
+##
+###############
+### APPENDIX
+###############
+##
+
+# Different FDR levels: average overlap
+
+# These are the extra FDR levels considered:
+FDRlevels <- c(0.001, 0.01, 0.1, 0.2)
+
+# Read the data in and add to a new data frame
+OverlapFDR <- data.frame('overlap' = matrix(MatrixOverlap,ncol=1),
+                         'sampleSize' = sampleSize,
+                         'FDR' = 0.05) %>% as_tibble()
+
+# Loop over the levels
+for(i in 1:length(FDRlevels)){
+  # Identifier
+  IDFDR <- sub(pattern = '.', replacement = '_', x = FDRlevels[i], fixed = TRUE)
+  
+  # Read in the data
+  MatrixOverlapFDRtmp <- readRDS(paste(LocIntRes,'/MaitraOverlapFDR',IDFDR,'.rda',sep=''))
+  
+  # Convert to data frame and bind to final data frame
+  OverlapFDR <- bind_rows(
+    OverlapFDR, 
+    data.frame('overlap' = matrix(MatrixOverlapFDRtmp, ncol = 1),
+               'sampleSize' = sampleSize) %>% as_tibble() %>%
+      mutate('FDR' = FDRlevels[i])
+  )
+}
+# Change FDR to factor
+OverlapFDR$FDR <- factor(OverlapFDR$FDR)
+
+# Average overlap
+OverlapFDR %>% 
+  group_by(sampleSize, FDR) %>%
+  summarise(AvOverl = mean(overlap)) %>%
+  ungroup() %>%
+  ggplot(., aes(x = sampleSize, y = AvOverl)) +
+  geom_line(aes(colour = FDR), size = 1) + 
+  scale_x_continuous(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~(omega))) +
+  labs(title = 'Conditional test-retest reliability') +
+  theme_classic()
+
+# Plot using smoother
+ggplot(OverlapFDR, aes(x=factor(sampleSize), y = overlap, group = factor(FDR))) + 
+geom_smooth(aes(colour = factor(FDR))) +
+scale_x_discrete(breaks = subjBreak, name="Sample size") +
+scale_y_continuous(name=expression(Overlap~~(omega))) +
+labs(title = 'Conditional test-retest reliability') +
+theme_classic() +
+theme(panel.grid.major = element_line(size = 0.8),
+      panel.grid.minor = element_line(size = 0.8),
+      axis.title.x = element_text(face = 'plain'),
+      axis.title.y = element_text(face = 'plain'),
+      axis.text = element_text(size = 11, face = 'plain'),
+      axis.ticks = element_line(size = 1.3),
+      axis.ticks.length=unit(.20, "cm"),
+      axis.line = element_line(size = .75),
+      title = element_text(face = 'plain'),
+      plot.title = element_text(hjust = 0.5),
+      legend.position = 'bottom')
+
+# Boxplots
+overlapBoxFDRs <- ggplot(OverlapFDR, aes(x=factor(sampleSize), y = overlap)) + 
+  geom_boxplot(aes(fill = factor(FDR)), outlier.size = .5, 
+               outlier.color = 'orange', width = .90) +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~(omega))) +
+  labs(title = 'Conditional test-retest reliability') +
+  scale_fill_brewer('FDR control at ', type = 'qual', palette = 6) +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+overlapBoxFDRs
+
+# Overlap plot: boxplots
+ggsave(filename = paste0(getwd(), '/overlapBoxFDRs.png'),
+       plot = overlapBoxFDRs,
+       width = 28, height = 18, units = 'cm', scale = 1.5)
 
 
 ##
