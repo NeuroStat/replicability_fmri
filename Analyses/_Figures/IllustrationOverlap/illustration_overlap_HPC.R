@@ -117,11 +117,16 @@ overlap_fu <- function(map1, map2, threshold){
   bin_map1 <- bin_fu(map1, threshold)
   bin_map2 <- bin_fu(map2, threshold)
   
+  # Proportions declared significant
+  propD_map1 <- prop.table(table(bin_map1))[length(prop.table(table(bin_map1)))]
+  propD_map2 <- prop.table(table(bin_map2))[length(prop.table(table(bin_map2)))]
+  
   # Now calculate the overlap using overl_calc
   overlap <- overl_calc(bin_map1, bin_map2)
   
   # The end
-  return(data.frame('overlap' = overlap, 'P_threshold' = threshold))
+  return(data.frame('overlap' = overlap, 'P_threshold' = threshold,
+                    'propSignA' = propD_map1, 'propSignB' = propD_map2))
 }
 
 # Custom function to generate P-values
@@ -374,7 +379,9 @@ for(ID in startIndex:endIndex){
         # Now calculate the overlap: threshold is the average used threshold in both maps
         sim_data <- data.frame('overlap' = overl_calc(PVal_thr1$SPM, PVal_thr2$SPM),
                                'P_threshold' = mean(PVal_thr1$signLevel,
-                                                    PVal_thr2$signLevel)) %>%
+                                                    PVal_thr2$signLevel),
+                               'propSignA' = PVal_thr1$percentage,
+                               'propSignB' = PVal_thr2$percentage) %>%
           # Add info
           mutate(N = nsub[s],
                  BaseProp = baseProp[l],

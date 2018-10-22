@@ -40,7 +40,7 @@ library(NeuRRoStat)
 # Dimension of the 2D slice
 DIM2D <- c(50,50)
 
-# Which sigma do you want boy?
+# Which sigma do you want?
 sigma_opt <- c(1,2)
 sigma <- sigma_opt[2]
 
