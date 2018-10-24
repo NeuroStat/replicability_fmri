@@ -42,6 +42,7 @@ library(gridExtra)
 library(oro.nifti)
 library(reshape2)
 library(RColorBrewer)
+library(segmented)
 library(Hmisc)
 library(NeuRRoStat)
 
@@ -214,6 +215,28 @@ Kappa %>% group_by(SampleSize) %>%
   filter(MedKap == min(MedKap) | 
            MedKap == max(MedKap))
 
+# Fitted two regressions with a knot at N = 60
+Kappa %>% 
+  filter(SampleSize  < 60) %>%
+  lm(kappa ~ SampleSize, data = .) %>%
+  coef(.) %>%
+  data.frame("values" = .) %>%
+  mutate(valPer10 = values * 10)
+Kappa %>% 
+  filter(SampleSize  >= 60) %>%
+  lm(kappa ~ SampleSize, data = .) %>%
+  coef(.) %>%
+  data.frame("values" = .) %>%
+  mutate(valPer10 = values * 10)
+
+# Let us use an iterative technique from the semgented package
+fit <- lm(kappa ~ SampleSize, data = Kappa)
+segm <- segmented(fit, seg.Z = ~ SampleSize)
+slope(segm)
+plot(segm)
+
+ggplot(Kappa, aes(x = SampleSize, y = kappa)) + 
+  geom_point()
 
 # Plot results
 ggplot(Kappa, aes(x = SampleSize, y = kappa)) +

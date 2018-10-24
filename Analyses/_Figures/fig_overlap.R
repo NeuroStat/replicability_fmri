@@ -218,7 +218,9 @@ ggplot(., aes(x = SampleSize, y = Value, group = Type)) +
   geom_hline(yintercept = MedOv001, linetype = 'dashed') +
   stat_summary(aes(group = Type), fun.y = mean, 
                geom="line", colour = 'black', size = .6) +
-  scale_color_manual('', values = c('#000000','#525252','#969696'),
+#  scale_color_manual('', values = c('#000000','#525252','#969696'),
+#                    labels = c('Overlap', 'x100 % of activated voxels', 'Significance level')) +
+  scale_color_brewer('', type = 'qual', palette = 2,
                     labels = c('Overlap', 'x100 % of activated voxels', 'Significance level')) +
   scale_shape_manual('', values = c(17,18,1),
                      labels = c('Overlap', 'x100 % of activated voxels', 'Significance level')) +

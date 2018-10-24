@@ -47,6 +47,8 @@ PCoh <- sample(x = c(0,10), size = N, replace = TRUE, prob = c(.60,.40))
 perfCoh <- data.frame(value = PCoh) %>% as_tibble() %>%
   mutate(class = ifelse(value == 0, 'True Inactive', 'True Active'))
 perfCoh$class <- as.factor(perfCoh$class)
+# True kappa with these values
+TrueK_PC <- NeuRRoStat::CohenKappa(lambda = .60, piA1 = 1, piI1 = 0)
 
 # Now create less perfect coherence
 #   to achieve, we need a mixture distribution
@@ -58,6 +60,10 @@ lambda <- 0.75
 prob_null <- 0.8
 # prob of success in alternative
 prob_act <- 0.5
+# True kappa with these values
+TrueK_MC <- NeuRRoStat::CohenKappa(lambda = lambda, piA1 = prob_act, piI1 = 1 - prob_null)
+
+
 
 # First create vector with labels
 labels <- data.frame(class = c(rep('True Inactive', length = lambda * N), 
@@ -128,12 +134,24 @@ ggplot(data = mixCoh, aes(x = observation)) +
         legend.position = 'bottom')
 
 # In one panel
+# First create labels of the expressions
+labels_text <- data.frame(
+  label = c('lambda == 0.60', 'lambda == 0.75',
+            'pi[A]^1 == 1', 'pi[A]^1 == 0.5',
+            'pi[I]^1 == 0', 'pi[I]^1 == 0.2'),
+  sourceF = c('kappa == 1', 'kappa == 0.21',
+              'kappa == 1', 'kappa == 0.21',
+              'kappa == 1', 'kappa == 0.21'),
+  x = c(9,9,9,9,9,9),
+  y = c(5900,5900,5500,5500,5100,5100)
+)
+# Now plot
 mixCoh %>% 
 	rename(value = observation) %>%
-	mutate(source = 'non perfect coherence') %>%
-	bind_rows(cbind(perfCoh, 'source' = 'perfect coherence')) %>%
+	mutate(source = 'kappa == 0.21') %>%
+	bind_rows(cbind(perfCoh, 'source' = 'kappa == 1')) %>%
 	# Add order variable
-	mutate(order = ifelse(source == 'perfect coherence', 1, 2)) %>%
+	mutate(order = ifelse(source == 'kappa == 1', 1, 2)) %>%
 	# now add order to source
 	mutate(sourceF = reorder(source, order)) %>%
   ggplot(data = ., aes(x = value)) +
@@ -141,9 +159,22 @@ mixCoh %>%
   scale_x_continuous('Sum of binarized - replicated images',
   breaks = c(0,2,4,6,8,10)) +
   scale_y_continuous('Number of voxels') +
-  facet_wrap(~ sourceF) + 
-  labs(title = 'Illustration of coherence',
-       subtitle = 'Number of independent replications = 10') +
+  scale_fill_manual('class', labels = c('True Active', 'True Inactive'),
+                    values = c('#00BFC4', '#F8766D')) +
+  facet_wrap(~ sourceF, labeller = label_parsed) + 
+  labs(title = 'Illustration of coherence') +
+  # Add parameters to the panels
+  geom_text(
+    data = labels_text,
+    mapping = aes(x = x, y = y, label = label),
+    size = 3,
+    fontface = 'bold',
+    hjust = 0,
+    parse = TRUE) +
+  # Add box
+  annotate("rect", xmin = 8.5, xmax = 10.5, 
+           ymin = 4900, ymax = 6100,
+           alpha = .2) + 
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
@@ -157,15 +188,49 @@ mixCoh %>%
         title = element_text(face = 'plain'),
         plot.title = element_text(hjust = 0.5),
         strip.background = element_rect(colour="white", fill="white"),
-        strip.text = element_text(size = 11),
+        strip.text = element_text(size = 13),
         plot.subtitle = element_text(hjust = 0, vjust = -2),
         legend.key.size = unit(.80,'cm'),
         legend.text = element_text(size = 11),
         legend.position = 'bottom',
-        legend.title = element_text(size = 11))
+        legend.title = element_text(size = 11))  
 
+# Save the figure
 ggsave(filename = paste0(getwd(),'/IllustrationCoh.png'), plot = last_plot(),
 scale = 1, width = 20, height = 14, units = 'cm', dpi = 600)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

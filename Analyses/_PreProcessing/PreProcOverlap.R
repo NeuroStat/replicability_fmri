@@ -22,6 +22,9 @@
 
 # Then we calculate the Maitra overlap measure (adapted Dice overlap).
 
+# We also calculate the average significance threshold corresponding to 
+# FDR 0.05.
+
 
 ##
 ###############
@@ -145,6 +148,80 @@ apply(MatrixOverlap,c(2),MissingValues)
 saveRDS(MatrixOverlap, file=paste(SaveLoc,'/MaitraOverlap.rda',sep=''))
 saveRDS(PercAct,file=paste(SaveLoc,'/PercActMaitraOverlap.rda',sep=''))
 
+
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+########################################################################################################################
+
+##
+###############
+### Measure P-value threshold
+###############
+##
+
+# Empty data frame
+PvalThr <- array(NA,dim=c(NSTEP,NRUNS))
+
+# Print statement
+PriST <- (c(1:NRUNS)/NRUNS)[seq(1,NRUNS,length.out=10)][-10]
+
+# For loop over all runs
+for(i in 1:NRUNS){
+  IDprint <- c(i/NRUNS)==PriST
+  if(any(IDprint)){
+    print(paste(round(PriST,2)[IDprint]*100, "% done"))
+  }
+  # For loop over all steps
+  for(j in 1:NSTEP){
+    # We have two images Z-statistic images
+    imageZ1 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group1/stats/zstat1.nii',sep=''))[,,],silent=TRUE)
+    if(!class(imageZ1)=='array') next
+    maskG1 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group1','/masked.nii.gz',sep=''))[,,],silent=TRUE)
+    if(!class(maskG1)=='array') next
+    idMaskG1 <- maskG1==0
+    imageZ1[idMaskG1] <- NA
+    imageZ2 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group2/stats/zstat1.nii',sep=''))[,,],silent=TRUE)
+    if(!class(imageZ2)=='array') next
+    maskG2 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group2','/masked.nii.gz',sep=''))[,,],silent=TRUE)
+    if(!class(maskG2)=='array') next
+    idMaskG2 <- maskG2==0
+    imageZ2[idMaskG2] <- NA
+    
+    # Now convert both images to P-values
+    imageP1 <- pnorm(q = imageZ1, 0, 1, lower.tail = FALSE)
+    imageP2 <- pnorm(q = imageZ2, 0, 1, lower.tail = FALSE)
+    
+    # Adjust the P-values using B&H approach
+    imageP1_adj <- p.adjust(imageP1, method = 'BH')
+    imageP2_adj <- p.adjust(imageP2, method = 'BH')
+    
+    # Now match the original P-values with the adjusted ones
+    matching1 <- data.frame('orig' = array(imageP1, dim = prod(DIM)),
+               'adj' = array(imageP1_adj, dim = prod(DIM)))
+    matching2 <- data.frame('orig' = array(imageP2, dim = prod(DIM)),
+                            'adj' = array(imageP2_adj, dim = prod(DIM)))
+    # Sort the original P-values
+    matching1 <- matching1[order(matching1$orig, na.last = TRUE, decreasing = FALSE),]
+    matching2 <- matching2[order(matching2$orig, na.last = TRUE, decreasing = FALSE),]
+    
+    # Check the P-value at corrected 0.05
+    Porig1 <- matching1[matching1$adj <= 0.05,'orig'][1]
+    Porig2 <- matching2[matching2$adj <= 0.05,'orig'][1]
+    
+    # Take the average
+    Porig <- mean(c(Porig1, Porig2), na.rm = TRUE)
+    
+    # Add to data frame
+    PvalThr[j,i] <- Porig
+  }
+  if(i==NRUNS) print("100% done")
+}
+
+# Average over all runs
+AvgRun <- apply(PvalThr, 1, mean, na.rm = TRUE)
+# Now over all steps
+mean(AvgRun, na.rm = TRUE)
 
 ########################################################################################################################
 ########################################################################################################################
