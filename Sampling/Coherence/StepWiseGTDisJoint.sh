@@ -25,7 +25,7 @@
 
 
 
-# Actual IMAGEN data can be in any other location!
+# Actual data can be in any other location!
 
 # NOTE: Group and Set are synonyms in this script...
 
@@ -40,12 +40,14 @@
 	scenario=$3
 	# Which computer: HPC or MAC
 	COMPUTER=HPC
+	# Source the paths
+	source blind_StepWiseGTDisJoint.sh "$vsc"
 	# Location of the data
 	if [ $COMPUTER = MAC ] ; then
-		data=/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/IMAGEN/IMAGEN/IMAGEN/Renamed/processed/data
+		data=$dataMAC
 	fi
 	if [ $COMPUTER = HPC ] ; then
-		data=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/Imagen/data
+		data=$dataHPC
 	fi
 	# Significance level in group analysis: uncorrected = 0.001, BH FDR = 0.05
 	if [ $scenario = uncorrected ] ; then
@@ -63,10 +65,10 @@
 
 # Location of scripts folder
 if [ $COMPUTER = MAC ] ; then
-	SCRPT=/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Sampling/Coherence
+	SCRPT=$SCRPTmac
 fi
 if [ $COMPUTER = HPC ] ; then
-	SCRPT=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/Freddie/Coherence
+	SCRPT=$SCRPThpc
 fi
 cd "${SCRPT}"
 
@@ -94,10 +96,10 @@ GROUPWD=$STEPWD/Group$group
 
 # Define working directory of sample sizes (on local machine, this is other location because it would otherwise appear in GIT folder)
 if [ $COMPUTER = MAC ] ; then
-	SAMPLEWD=/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/SampleSizes/Coherence/Run_$RUN
+	SAMPLEWD=$SAMPLEWDmac/Run_$RUN
 fi
 if [ $COMPUTER = HPC ] ; then
-	SAMPLEWD=/user/scratch/gent/gvo000/gvo00022/vsc"$vsc"/Freddie/Coherence/Results/SampleSizes/Run_$RUN
+	SAMPLEWD=$SAMPLEWDhpc/Run_$RUN
 fi
 
 # Need to have a temporary folder, one for each run, step and group so there is no overlap in calculations (parallel processing)!

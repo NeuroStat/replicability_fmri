@@ -88,30 +88,7 @@ cat('/NumWaves\t1
 ',rep("1\n",NumSub),file=fileCon)
 
 
-# ##
-# ###############
-# ### Create masks
-# ###############
-# ##
 
-# # Read in the cope image: all copes from each subject are read in.
-# 	# Then we take the union of the voxels being activated in all subjects. 
-# 		# First process the cope images such that:
-# 			# Voxels with any value get 1.
-# 			# Voxels with NaN get 0.
-# 	cope <- readNIfTI(paste(wd,'cope.nii',sep=''), verbose=FALSE, warn=-1, reorient=TRUE, call=NULL)[,,,]
-# 	cope[which(cope!=0)] <- 1
-# 	cope[which(is.nan(cope)==TRUE)] <- 0
-
-# # Now create a mask file
-# mask <- array(0,dim=dim(cope[,,,1]))							# A mask of same dimension as one cope. All with zeroes.
-# mask[which(apply(cope,c(1,2,3),sum)==dim(cope)[4])] <- 1 		# Only the voxels that sum to the total amount of subjects (dim(cope)[4]), get 1. Apply is used to sum over all subjects (4the dimension)
-
-# # Now write the amount of masks according to the amount of subjects.
-# for(j in 1:NumSub){
-# 	niftiimage <- nifti(img=mask,dim=dim(cope[,,,1]))
-# 	writeNIfTI(niftiimage,paste(wd,'mask_',j,sep=''),gzipped=FALSE)
-# }
 
 
 

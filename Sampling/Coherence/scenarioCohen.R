@@ -33,42 +33,16 @@
 ###############
 ##
 
-# Reset wm
-rm(list=ls())
-
-# Provide working directory
-wd <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/SampleSizes/Coherence/"
-
+# Source information not provided on Github (paths and IDs)
 
 # Set the starting seed
 StartingSeed <- 12
 set.seed(StartingSeed)
 
-# Load the file with information about dataset
-  # This file contains subject number without and with leading zero (1,2), 
-  # then center ID (3) and the number I have of the subject in my folder.
-load('/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/IMAGEN/IMAGEN/IMAGEN/OurIDs')
-# Some columns are obsolote (refer to research questions earlier)
-OurIDs <- OurIDs[,-c(5:11)]
-
-
 # Libraries
 library(RColorBrewer)
 library(ggplot2)
 library(grid)
-
-
-# Global variables
-# As information, the next subjects are deleted from the sampling process:
-# We do not remove sujbects here anymore, this is already done in the OurIDs file!
-# I just let them here as a reference!!!!
-remove <- c(1284,680,814,1460,1470,788,																															# Corrupted files, visual inspection
-40, 54, 61, 69, 155, 349, 384, 591, 869, 1219, 																											# Less amount of total masked voxels
-43,77,89,169,180,235,375,394,471,489,544,637,744,787,903,957,1043,1065,1129,1168,1232,1324,1335,1351,																					# Less amount of total masked voxels
-10, 166, 245, 373, 428, 474, 482, 491, 536, 565, 588, 600, 613, 618, 662, 668, 685, 699, 722, 747, 799, 829, 890, 987, 997, 1013, 1078, 1097,	# Less amount of total masked voxels
-1140, 1212, 1217, 1228, 1302, 1310, 1368, 1403, 1406, 1462, 1478,																		# No activity in upper brain regions
-68, 250, 328, 475, 551, 757, 1085, 1420)	
-
 
 # Starting amount of subjects in group analysis
 startingTotal <- 10
