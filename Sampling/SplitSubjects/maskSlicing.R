@@ -2,7 +2,7 @@
 #### TITLE:     Process the masks (only keep slice 1)
 #### Contents: 	
 #### 
-#### Source Files: //IMAGENDATA/Data/FreddieFreeloader/Script.git/Sampling/SplitSubjects
+#### Source Files: ///Data/FreddieFreeloader/Script.git/Sampling/SplitSubjects
 #### First Modified: 26/20/2015
 #### Notes: 
 #################
