@@ -83,6 +83,50 @@ sim_data <- sim_data %>%
 
 ##
 ###############
+### Average proportion voxels declared active
+###############
+##
+
+# Get the proportion of voxels declared significant
+propD <- sim_data %>% 
+  filter(approach == 'normal') %>%
+  # Drop unused variables
+  dplyr::select(-target) %>%
+  # Now group and summarise
+  group_by(BasePropLOr, P_threshold, N) %>%
+  summarise(avgPropA = mean(propSignA, na.rm = TRUE),
+            avgPropB = mean(propSignB, na.rm = TRUE)) %>%
+  # Average over both images
+  mutate(avgPropSign = (avgPropA + avgPropB)/2) %>%
+  ggplot(., aes(x = N, y = avgPropSign)) + 
+  geom_line(aes(colour = P_threshold), size = .75) +
+  facet_wrap(~BasePropLOr, as.table = TRUE, dir = 'h') + 
+  scale_color_continuous('Threshold (P)') + 
+  scale_y_continuous(expression(Overlap~(omega))) +
+  labs(title = 'Average proportion voxels declared significant - numerical simulation') + 
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        strip.background = element_rect(colour="white", fill="white"),
+        strip.text = element_text(size = 11),
+        plot.subtitle = element_text(hjust = 0, vjust = -2),
+        legend.key.size = unit(.85,'cm'),
+        legend.text = element_text(size = 12),
+        legend.title = element_text(size = 13),
+        legend.position = c(0.86, 0.22))
+propD
+
+
+##
+###############
 ### Plot figure
 ###############
 ##
@@ -103,7 +147,6 @@ fixP <- sim_data %>%
   scale_color_continuous('Threshold (P)') + 
   scale_y_continuous(expression(Overlap~(omega))) +
   labs(title = 'Average overlap of activation - numerical simulation') + 
-       # subtitle = expression(X %~% N(mu,sigma^2))) +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
@@ -172,6 +215,11 @@ adapP
 ### Save figures
 ###############
 ##
+
+# Proportion of voxels declared significant
+ggsave(filename = paste(getwd(), '/Illus_propD.png', sep = ''),
+       plot = propD,
+       width = 32, height = 22, units = 'cm', scale = .75)
 
 # Fixed thresholds
 ggsave(filename = paste(getwd(), '/Illus_overl_fixP.png', sep = ''),
