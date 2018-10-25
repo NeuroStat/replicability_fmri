@@ -4,7 +4,7 @@
 ####            of voxels at constant level.
 #### Contents:
 ####
-#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script/Analyses/AdaptiveThresholding
+#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/I****DATA/Data/FreddieFreeloader/Script/Analyses/AdaptiveThresholding
 #### First Modified: 31/08/2015
 #### Notes:
 #################
