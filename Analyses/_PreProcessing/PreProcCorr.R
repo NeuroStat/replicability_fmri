@@ -2,7 +2,7 @@
 #### TITLE:     Unconditional mutual information between two images
 #### Contents:
 ####
-#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/
+#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/I****DATA/
 ####                Data/FreddieFreeloader/Script/Analyses/Faces/Unconditional
 #### First Modified: 24/11/2015
 #### Notes:
