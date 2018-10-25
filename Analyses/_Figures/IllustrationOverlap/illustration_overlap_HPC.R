@@ -30,6 +30,8 @@ input <- commandArgs(TRUE)
 hpcID <- try(as.numeric(as.character(input)[1]),silent=TRUE)
 # Which machine
 MACHINE <- try(as.character(input)[2],silent=TRUE)
+# Source the paths
+source(blind_illustration_overlap_HPC.R)
 # If no machine is specified, then it has to be this machine!
 if(is.na(MACHINE)){
   MACHINE <- 'MAC'
@@ -43,10 +45,10 @@ endIndex <- try(startIndex + (rIter - 1), silent = TRUE)
 
 # Set WD: this is location where results are written
 if(MACHINE=='HPC'){
-  wd <- '/user/scratch/gent/gvo000/gvo00022/vsc40728/IlluOverl'
+  wd <- wdHPC
 }
 if(MACHINE=='MAC'){
-  wd <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
+  wd <- wdMAC
 }
 
 ##
