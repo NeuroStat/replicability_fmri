@@ -36,11 +36,9 @@
 ###############
 ##
 
-# Location of raw data: not included in Github folder (too large)
-RawDat <- "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/Stability"
-
-# Save intermediate results
-SaveLoc <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
+# Source paths
+source(blind_PreProcessing.R)
+RawDat <- RawDatStab
 
 # Load in libraries
 library(tidyverse)

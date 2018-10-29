@@ -32,12 +32,9 @@
 ###############
 ##
 
-# Location of the (raw) data
-# This data is not stored at Github (too large)
-dat <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/SplitSubjects/ScenarioA_50'
-
-# Save intermediate results
-SaveLoc <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
+# Source paths
+source(blind_PreProcessing.R)
+dat <- RawDatSplit
 
 # Load in libraries
 library(lattice)

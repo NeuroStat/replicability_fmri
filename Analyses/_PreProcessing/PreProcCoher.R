@@ -29,18 +29,17 @@
 ###############
 ##
 
+# Source paths
+source(blind_PreProcessing.R)
+
 # Possible thresholding scenario
 scenario_pos <- c('uncorrected', 'fdr')
 scenario <- scenario_pos[1]
 
 # Location of raw data: not included in Github folder (too large)
 RawDat <- ifelse(scenario == 'uncorrected',
-  "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/Coherence/Results_Unc/Results",
-  "/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Data/Coherence/Results_FDR/Results")
-  
-
-# Save intermediate results
-SaveLoc <- '/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Analyses/_IntData'
+                 RawDatCohUnc,
+                 RawDatCohFDR)
 
 # Load in libraries
 library(tidyverse)
