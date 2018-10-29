@@ -9,7 +9,7 @@ In this project, we investigate the replicability of fMRI results. We measure th
 We use the a database with N = 1400 subjects from where we subsample independent replications.
 
 ## Structure of project
-* Sampling: contains the scripts for sampling and generating the raw results.
+* Sampling: contains the scripts which were used for sampling and generating the results.
 * Analyses: contains the scripts to generate the pre-processed data, the analyses and finally the figures for the paper. 
 
 The actual database is separated from this repository. Furthermore, the **raw** results are too large to save into a Github repository and hence also separated. Pre-processed (and blinded) *intermediate* R files are saved in /2_Analyses/_IntData. 
