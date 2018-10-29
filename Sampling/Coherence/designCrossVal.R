@@ -2,7 +2,7 @@
 #### TITLE:     Create the design.mat, design.con and design.grp files
 #### Contents: 	
 #### 
-#### Source Files: //Meta\ Analyis/R\ Code/Studie_FixRan/FixRanStudy.git/Imagen
+#### Source Files: //Meta\ Analyis/R\ Code/Studie_FixRan/FixRanStudy.git/
 #### First Modified: 14/11/2014
 #### Notes: 
 #################

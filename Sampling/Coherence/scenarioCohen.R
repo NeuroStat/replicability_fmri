@@ -4,7 +4,7 @@
 ####            independent disjoint sets.
 #### Contents: 	
 #### 
-#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/Sampling/Coherence
+#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/I****DATA/Data/FreddieFreeloader/Script.git/Sampling/Coherence
 #### First Modified: 23/05/2018
 #### Notes: 
 #################

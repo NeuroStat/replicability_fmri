@@ -25,7 +25,7 @@
 
 
 
-# Actual IMAGEN data can be in any other location!
+# Actual data is located elsewhere!
 
 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

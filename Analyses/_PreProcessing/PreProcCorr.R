@@ -205,7 +205,7 @@ ggplot(Correlation, aes(x=factor(sampleSize), y=PearsonCorr)) +
 ##
 
 ## Created map for the Amygdala
-map <- readNIfTI('/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/Analyses/Faces/Scenario6/CreateMask/flirted_amygdala.nii.gz')[,,]
+map <- readNIfTI(mapAmygdala)[,,]
 
 # Matrix were data will get into
 MatCorrAmyg <- array(NA,dim=c(NSTEP,NRUNS))

@@ -2,7 +2,7 @@
 #### TITLE:     Perform voxelwise inference for group analysis
 #### Contents: 	
 #### 
-#### Source Files: //Meta\ Analyis/R\ Code/Studie_FixRan/FixRanStudy.git/Imagen
+#### Source Files: //Meta\ Analyis/R\ Code/Studie_FixRan/FixRanStudy.git/
 #### First Modified: 10/02/2015
 #### Notes: FDR correction, Benjamin & Hochberg procedure
 #################
