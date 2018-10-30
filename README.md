@@ -12,7 +12,7 @@ We use the a database with N = 1400 subjects from where we subsample independent
 * Sampling: contains the scripts which were used for sampling and generating the results.
 * Analyses: contains the scripts to generate the pre-processed data, the analyses and finally the figures for the paper. 
 
-The actual database is separated from this repository. Furthermore, the **raw** results are too large to save into a Github repository and hence also separated. Pre-processed (and blinded) *intermediate* R files are saved in /2_Analyses/_IntData. 
+The actual database is separated from this repository due to privacy reasons. Pre-processed (and blinded) *intermediate* R files are saved in /2_Analyses/_IntData. 
 To generate the figures, one then only needs this folder and the /2_Analyses/_Figures folder. 
 
 ## Contact
