@@ -37,7 +37,7 @@
 ##
 
 # Source paths
-source(blind_PreProcessing.R)
+source('blind_PreProcessing.R')
 RawDat <- RawDatStab
 
 # Load in libraries
@@ -60,6 +60,9 @@ NRUNS <- 50
 NSTEP <- 70
 # Number of groups in each step
 NGROUP <- 2
+
+# At what percentage do we consider a cluster replicated?
+percRepl <- 0.5
 
 
 ########################
@@ -114,6 +117,15 @@ numUniqClust <- data.frame('UniClus' = as.integer(),
           'AvTotClus'= as.integer(),
           'step' = as.integer(),
           'run' = as.integer()) %>% as.tibble()
+
+# Data frame with overlapping vs non-overlapping clusters 
+#   when defined as percentage overlapping >= percRepl
+numPercClust <- data.frame('UniPercClust' = as.integer(),
+         'OverlPercClust' = as.integer(),
+         'TotClus' = as.integer(),
+         'AvTotClus'= as.integer(),
+         'step' = as.integer(),
+         'run' = as.integer()) %>% as.tibble()
 
 # Data frame with proportion of overlapping voxels in each image
 propOverVox <- data.frame('OverVox' = as.integer(),
@@ -216,7 +228,65 @@ for(i in 1:NRUNS){
                      'AvTotClus' = AvTotClus,
                      'step' = as.integer(j),
                      'run' = as.integer(i)))
-     
+    
+    ####################################################
+    ##### NUMBER OF percRepl% OVERLAPPING CLUSTERS #####
+    ####################################################
+    # We use IDmax, IDmin and clusters from section above!
+    # Empty vector with flags (YES/NO whether percRepl% overlapping)
+    FlagOver <- NULL
+    
+    # Loop over the clusters
+    for(r in 1:max(clusters[,IDmin])){
+      # We take the r^th cluster and copy to a new image
+      copyImage <- clusters
+      copyImage[!copyImage[,IDmin]==r, IDmin] <- 0
+      # Check in other image: just 1/0 value if cluster is there
+      copyImage[copyImage[,IDmax] != 0, IDmax] <- 1
+      # Now sum both images
+      sumCopy <- copyImage[,1] + copyImage[,2]
+      # Check whether 50% of r equals r + 1
+      propOv <- sum(sumCopy==r+1)/(sum(sumCopy==r) + sum(sumCopy==r + 1))
+      
+      # Add to vector
+      FlagOver <- c(FlagOver, ifelse(propOv >= percRepl, 1, 0))
+    }
+    
+    # Amount of overlapping versus non-overlapping clusters
+    OverlPercClust <- sum(FlagOver == 1)
+    uniPercClust <- sum(FlagOver == 0)
+    
+    # Repeat for the other cluster (later take the average)!
+    FlagOver <- NULL
+    # Loop over the clusters
+    for(r in 1:max(clusters[,IDmax])){
+      # We take the r^th cluster and copy to a new image
+      copyImage <- clusters
+      copyImage[!copyImage[,IDmax]==r, IDmax] <- 0
+      # Check in other image: just 1/0 value if cluster is there
+      copyImage[copyImage[,IDmin] != 0, IDmin] <- 1
+      # Now sum both images
+      sumCopy <- copyImage[,1] + copyImage[,2]
+      # Check whether 50% of r equals r + 1
+      propOv <- sum(sumCopy==r+1)/(sum(sumCopy==r) + sum(sumCopy==r + 1))
+      
+      # Add to vector
+      FlagOver <- c(FlagOver, ifelse(propOv >= percRepl, 1, 0))
+    } 
+    
+    # Amount of overlapping versus non-overlapping clusters
+    OverlPercClust <- (OverlPercClust + sum(FlagOver == 1)) / 2
+    uniPercClust <- (uniPercClust + sum(FlagOver == 0)) / 2
+
+    # Add to data frame
+    numPercClust <- bind_rows(numPercClust,
+          data.frame('UniPercClust' = uniPercClust,
+                     'OverlPercClust' = OverlPercClust,
+                     'TotClus' = TotClus,
+                     'AvTotClus' = AvTotClus,
+                     'step' = as.integer(j),
+                     'run' = as.integer(i)))
+
     ######################################################
     ###### PROPORTION WITHIN CLUSTERS OVERLAPPING ########
     ######################################################
@@ -258,7 +328,12 @@ ClustSize %<>% mutate(NumMask = NumMask)
 
 saveRDS(ClustSize, paste(SaveLoc,'/ClustSize.rda', sep = ''))
 saveRDS(numUniqClust, paste(SaveLoc,'/numUniqClust.rda', sep = ''))
+saveRDS(numPercClust, paste(SaveLoc,'/numPercClust.rda', sep = ''))
 saveRDS(propOverVox, paste(SaveLoc,'/propOverVox.rda', sep = ''))
+
+
+
+
 
 
 

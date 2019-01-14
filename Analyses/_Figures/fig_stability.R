@@ -75,6 +75,9 @@ ClustSize <- readRDS(paste(LocIntRes, 'ClustSize.rda', sep = ''))
 # Data frame with number of unique and total clusters
 numUniqClust <- readRDS(paste(LocIntRes, 'numUniqClust.rda', sep = ''))
 
+# Data frame with number of unique and total clusters when using a cut-off percentage
+numPercClust <- readRDS(paste(LocIntRes, 'numPercClust.rda', sep = ''))
+
 # Data frame with proportion of overlapping voxels in the clusters
 propOverVox <- readRDS(paste(LocIntRes, 'propOverVox.rda', sep = ''))
 
@@ -464,6 +467,134 @@ numUniqClust %>%
   filter(AvUniClus <= 0.05)
 
 
+
+#######################################################
+##### UNIQUE VS OVERLAPPING CLUSTERS WITH CUT-OFF #####
+#######################################################
+
+# Here we calculate the number of overlapping clusters
+# We look at each test and retest and compare those two images.
+# If 50% of the voxels of a cluster are found in the other cluster, then they are
+# considered replicated!
+# We average over all runs for each sample size and then average over the test and replication
+# to obtain the average number of overlapping vs non-overlapping (and total number of) clusters.
+OverlClustCutOff <- numPercClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster %in% c('UniPercClust', 'OverlPercClust', 'AvTotClus')) %>%
+  group_by(cluster)  %>% 
+  # Plot
+  ggplot(., aes(x = SampleSize, y = count, colour = 
+                  # Recode cluster
+                  factor(cluster, levels = 
+                           c('AvTotClus', 'OverlPercClust', 'UniPercClust'), 
+                         labels = 
+                           c('AvTotClus', 'OverlPercClust', 'UniPercClust')))) +
+  geom_smooth(aes(colour = 
+                    # Recode cluster
+                    factor(cluster, levels = 
+                             c('AvTotClus', 'OverlPercClust', 'UniPercClust'), 
+                           labels = 
+                             c('AvTotClus', 'OverlPercClust', 'UniPercClust'))),
+              size = 1.7,
+              method = 'gam',
+              formula = y ~ s(x, bs = "cs")) +
+  scale_x_continuous(breaks = subjBreak, 'Sample size') +
+  scale_y_continuous('Average number of clusters') +
+  scale_color_manual('', values = c('#1b9e77','#984ea3', '#d95f02'),
+                     labels = c('Total count',
+                                'Overlapping',
+                                'Non-overlapping')) + 
+  labs(title = 'Total, overlapping & non-overlapping clusters',
+       subtitle = 'Z = 2.3 and FWER = 0.05') +
+  guides(colour = guide_legend(order = 3)) +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length = unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5, size = 13),
+        legend.position = 'bottom')
+OverlClustCutOff
+
+
+###################################################################
+##### UNIQUE VS OVERLAPPING CLUSTERS WITH AND WITHOUT CUT-OFF #####
+###################################################################
+
+
+OverlClust1VoxCutOff <- numUniqClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4,5,6) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster %in% c('AvUniClus', 'AvOverlCluster', 'AvTotClus')) %>%
+  mutate(CutOff = 'A: at least one voxel overlapping') %>% 
+  bind_rows(.,
+      numPercClust %>% 
+        # Gather clusters in one column
+        gather(key = 'cluster', value = 'count', 1,2,3,4) %>%
+        mutate(SampleSize = step * 10) %>%
+        # Filter out the average unique, overlapping and total number of clusters
+        filter(cluster %in% c('UniPercClust', 'OverlPercClust', 'AvTotClus')) %>%
+        # recode cluster
+        mutate(cluster = recode(cluster,  
+                'AvTotClus' = 'AvTotClus',
+               'OverlPercClust' = 'AvOverlCluster', 
+               'UniPercClust' = 'AvUniClus')) %>%
+        mutate(CutOff = 'B: 50% of the cluster overlapping')) %>%
+  group_by(cluster) %>% 
+  # Plot
+  ggplot(., aes(x = SampleSize, y = count, colour = 
+                  # Recode cluster
+                  factor(cluster, levels = 
+                           c('AvTotClus', 'AvOverlCluster', 'AvUniClus'), 
+                         labels = 
+                           c('AvTotClus', 'AvOverlCluster', 'AvUniClus')))) +
+  geom_smooth(aes(colour = 
+                    # Recode cluster
+                    factor(cluster, levels = 
+                             c('AvTotClus', 'AvOverlCluster', 'AvUniClus'), 
+                           labels = 
+                             c('AvTotClus', 'AvOverlCluster', 'AvUniClus'))),
+              size = 1.7,
+              method = 'gam',
+              formula = y ~ s(x, bs = "cs")) +
+  facet_wrap(~CutOff) +
+  scale_x_continuous(breaks = subjBreak, 'Sample size') +
+  scale_y_continuous('Average number of clusters') +
+  scale_color_manual('', values = c('#1b9e77','#984ea3', '#d95f02'),
+                     labels = c('Total count',
+                                'Overlapping',
+                                'Non-overlapping')) + 
+  labs(title = 'Total, overlapping & non-overlapping clusters',
+       subtitle = 'Z = 2.3 and FWER = 0.05') +
+  guides(colour = guide_legend(order = 3)) +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length = unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        panel.grid = element_line(linetype = 'dotted'),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5, size = 13),
+        legend.position = 'bottom')
+OverlClust1VoxCutOff
+
+
+  
 ###############################################
 ##### PROPORTION OVERLAP BETWEEN CLUSTERS #####
 ###############################################
@@ -544,6 +675,18 @@ numUniqClust %>%
   # N = 30
   filter(SampleSize == 30)
 
+# When using conservative definition
+numPercClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster %in% c('UniPercClust', 'OverlPercClust', 'AvTotClus')) %>%
+  group_by(SampleSize, cluster) %>%
+  summarise(MedClust = median(count)) %>% 
+  # N = 30
+  filter(SampleSize == 30)
+
 # Proportion intersecting
 propOverVox %>%
   # Mutate proportion
@@ -600,6 +743,34 @@ plot_grid(AvgClustS, PropLargC,
 ggsave(filename = paste0(getwd(), '/FullStability.png'),
        plot = ggplot2::last_plot(),
        width = 26, height = 32, units = 'cm', scale = 1)
+
+
+# Combine AvgClustS, PropLargC, OverlClust1VoxCutOff, IntsCluster, SDClustCount and SDClustSize
+# --> function unstable, sometimes need to re-run if crashes!
+plot_grid(AvgClustS, PropLargC, 
+          SDClustCount, SDClustSize, 
+          OverlClust1VoxCutOff, IntsCluster, 
+          labels = c("A", "B", "C", "D", "E", "F"), nrow = 3, align = "hv",
+          axis = 'tblr')
+ggsave(filename = paste0(getwd(), '/FullStabilityCutOff.png'),
+       plot = ggplot2::last_plot(),
+       width = 26, height = 32, units = 'cm', scale = 1)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
