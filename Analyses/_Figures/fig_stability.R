@@ -525,6 +525,18 @@ OverlClustCutOff <- numPercClust %>%
         legend.position = 'bottom')
 OverlClustCutOff
 
+# When is average non-overlapping more or less zero?
+numPercClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster == 'UniPercClust') %>%
+  # Summarise over sample sizes
+  group_by(SampleSize) %>%
+  summarise(AvUniClus = mean(count)) %>% 
+  # Sample size when average < 0.05
+  filter(AvUniClus <= 0.05)
 
 ###################################################################
 ##### UNIQUE VS OVERLAPPING CLUSTERS WITH AND WITHOUT CUT-OFF #####
