@@ -38,7 +38,24 @@
 
 # Source paths
 source('blind_PreProcessing.R')
-RawDat <- RawDatStab
+
+# Possible contrasts: default = MATH > LANGUAGE
+contrast <- c('ML', 'Faces')
+contr <- contrast[2]
+
+# Stability is plotted on separate figures for each contrast
+# Therefor, we can use different objects
+if(contr == 'ML'){
+  RawDat <- RawDatStab
+}
+if(contr == 'Faces'){
+  RawDat <- RawDatStabF
+}
+
+# Paste contrast to save data location (unless contrast is default)
+SaveLocC <- ifelse(contr == 'ML',
+    SaveLoc,
+    paste(SaveLoc, '/', contr, sep = ''))
 
 # Load in libraries
 library(tidyverse)
@@ -326,10 +343,90 @@ ClustSize %<>% mutate(NumMask = NumMask)
 ##
 
 
-saveRDS(ClustSize, paste(SaveLoc,'/ClustSize.rda', sep = ''))
-saveRDS(numUniqClust, paste(SaveLoc,'/numUniqClust.rda', sep = ''))
-saveRDS(numPercClust, paste(SaveLoc,'/numPercClust.rda', sep = ''))
-saveRDS(propOverVox, paste(SaveLoc,'/propOverVox.rda', sep = ''))
+saveRDS(ClustSize, paste(SaveLocC,'/ClustSize.rda', sep = ''))
+saveRDS(numUniqClust, paste(SaveLocC,'/numUniqClust.rda', sep = ''))
+saveRDS(numPercClust, paste(SaveLocC,'/numPercClust.rda', sep = ''))
+saveRDS(propOverVox, paste(SaveLocC,'/propOverVox.rda', sep = ''))
+
+
+
+
+
+
+
+
+for(i in 47:NRUNS){
+  IDprint <- c(i/NRUNS)==PriST
+  if(any(IDprint)){
+    print(paste(round(PriST,2)[IDprint]*100, "% done"))
+  }
+  # For loop over all steps
+  for(j in 1:NSTEP){
+    #if(i == 48 & j == 50) next
+    #########################
+    ##### CLUSTER SIZES #####
+    #########################
+    # We have data files from group 1 and group 2: read in cluster index + size
+    # then bind to ClustSize data frame
+    ClustSize %<>% bind_rows(
+      ReadClusters(location = RawDat, run = i, step = j, group = 1),
+      ReadClusters(location = RawDat, run = i, step = j, group = 2))
+    
+    #########################
+    ##### NIFTI IMAGES ######
+    #########################
+    # Next we read in the nifti file with the clusters
+    imageG1 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group1','/clusteroutput.nii.gz',
+                                   sep=''))[,,], silent=TRUE)
+    imageG2 <- try(readNIfTI(paste(RawDat,'/Run_',i,'/Step_',j,'/Group2','/clusteroutput.nii.gz',
+                                   sep=''))[,,], silent=TRUE)
+    
+    
+    if(class(imageG1) != 'array'){
+      print(paste0('Run ', i, ' and step ', j))
+    }
+    if(class(imageG2) != 'array'){
+      print(paste0('Run ', i, ' and step ', j))
+    }
+  }
+}
+i
+j
+
+((i - 1)*70*2)+(j*2)
+
+((48 - 1)*70*2)+(50*2)
+((48 - 1)*70*2)+(52*2)
+
+((48 - 1)*70*2)+(70*2)
+
+#####
+((48 - 1)*70*2)+(52*2)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
