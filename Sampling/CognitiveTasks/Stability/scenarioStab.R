@@ -1,10 +1,10 @@
 ####################
-#### TITLE:     Sample stepwise 10subjects from the total pool of all 
-####            subjects
+#### TITLE:     Sample stepwise 10 subjects from the total pool of all 
+####            subjects, without controlling for external factors
 #### Contents: 	
 #### 
-#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/I****DATA/Data/FreddieFreeloader/Script.git/Sampling/SplitSubjects
-#### First Modified: 17/08/2015
+#### Source Files: /Volumes/2_TB_WD_Elements_10B8_Han/PhD/I*****DATA/Data/FreddieFreeloader/Script.git/Sampling/Stability
+#### First Modified: 16/04/2018
 #### Notes: 
 #################
 
@@ -14,7 +14,7 @@
 ###############
 ##
 
-# SCENARIO A: 
+# SCENARIO: 
 # The idea is to take 10 subjects to start with and sample 10 OTHER subjects to compare with.
 # The sampling is complete at random (sole restriction is that the subjects are different).
 # This is repeated for 50 iterations.
@@ -23,7 +23,10 @@
 # However, this might take a very long time to do sequentially. Hence, we can use the HPC to work on in parallel. 
 # We already sample the subjects.
 # Then each analysis can be executed independent of the previous one. 
-# Later on we can calculate the overlap.
+
+# We will calculate the stability:
+#   - overlap between clusters (amount of overlapping voxels)
+#   - cluster size
 
 
 ##
@@ -33,7 +36,7 @@
 ##
 
 # Source information not provided on Github (paths and IDs)
-source(blind_scenarioA.R)
+source('blind_scenarioStab.R')
 
 # Set the starting seed
 StartingSeed <- 12
@@ -53,13 +56,11 @@ NRUNS <- 50
 # Total amount of subjects
 NTOT <- 700
 
-
 ##
 ###############
 ### Sampling
 ###############
 ##
-
 
 # We add sample sizes starting from 10 to 700.
 steps <- seq(startingTotal,NTOT,by=10)

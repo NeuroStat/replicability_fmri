@@ -34,7 +34,7 @@
 ##
 
 # Source information not provided on Github (paths and IDs)
-source(blind_scenarioCohen.R)
+source('blind_scenarioCohen.R')
 
 # Set the starting seed
 StartingSeed <- 12
