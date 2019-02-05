@@ -28,8 +28,26 @@
 
 
 # Source paths
-source(blind_PreProcessing.R)
-dat <- RawDatSplit
+source('blind_PreProcessing.R')
+
+# Possible contrasts: default = MATH > LANGUAGE
+contrast <- c('ML', 'Faces')
+contr <- contrast[2]
+
+# Stability is plotted on separate figures for each contrast
+# Therefor, we can use different objects
+if(contr == 'ML'){
+  dat <- RawDatSplit
+}
+if(contr == 'Faces'){
+  dat <- RawDatSplitF
+}
+
+# Paste contrast to save data location (unless contrast is default)
+SaveLocC <- ifelse(contr == 'ML',
+     SaveLoc,
+     paste(SaveLoc, '/', contr, sep = ''))
+
 
 # Load in libraries
 library(lattice)
@@ -72,6 +90,7 @@ for(i in 1:NRUNS){
     #-------------------------------------------------------------------------------------------------------------#
     imageG1 <- try(readNIfTI(paste(dat,'/Run_',i,'/Step_',j,'/Group1/stats','/tstat1.nii.gz',sep=''))[,,],silent=TRUE)
     if(!class(imageG1)=='array') next
+    if(length(table(imageG1)) == 1) next
     maskG1 <- try(readNIfTI(paste(dat,'/Run_',i,'/Step_',j,'/Group1','/masked.nii.gz',sep=''))[,,],silent=TRUE)
     if(!class(maskG1)=='array') next
     
@@ -79,6 +98,7 @@ for(i in 1:NRUNS){
     # Group 2
     imageG2 <- try(readNIfTI(paste(dat,'/Run_',i,'/Step_',j,'/Group2/stats','/tstat1.nii.gz',sep=''))[,,],silent=TRUE)
     if(!class(imageG2)=='array') next
+    if(length(table(imageG1)) == 2) next
     maskG2 <- try(readNIfTI(paste(dat,'/Run_',i,'/Step_',j,'/Group2','/masked.nii.gz',sep=''))[,,],silent=TRUE)
     if(!class(maskG2)=='array') next
     
@@ -119,7 +139,26 @@ complete.cases(t(MatrixCorrelation))
 ##
 
 # Save the correlations
-saveRDS(MatrixCorrelation, paste(SaveLoc,'/MatrixCorrelation.rda',sep=''))
+saveRDS(MatrixCorrelation, paste(SaveLocC,'/MatrixCorrelation.rda',sep=''))
+
+
+(i - 1)*70*2 + ((j - 1) * 2) + 1
+
+fileCon <- paste(getwd(),"/runJobs.txt",sep="")
+# Check data
+for(i in 1:NRUNS){
+  # For loop over all steps
+  for(j in 1:NSTEP){
+    ttestG1 <- try(readNIfTI(paste(dat,'Run_',i,'/Step_',j,'/Group1/thresh_zstat1.nii',sep=''))[,,],silent=TRUE)
+    if(class(ttestG1) == 'try-error'){
+      cat(paste((i - 1)*70*2 + ((j - 1) * 2) + 1, ' \n', sep = ''), file=fileCon, append = TRUE)
+    }
+    ttestG2 <- try(readNIfTI(paste(dat,'Run_',i,'/Step_',j,'/Group2/thresh_zstat1.nii',sep=''))[,,],silent=TRUE)
+    if(class(ttestG2) == 'try-error'){
+      cat(paste((i - 1)*70*2 + ((j - 1) * 2) + 2, ' \n', sep = ''), file=fileCon, append = TRUE)
+    }
+  }
+}
 
 
 ##

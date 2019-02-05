@@ -35,6 +35,9 @@
 # Location of intermediate results
 LocIntRes <- '../_IntData/'
 
+# Possible contrasts: default = MATH > LANGUAGE
+contrast <- c('ML', 'Faces')
+
 # Load in libraries
 library(tidyverse)
 library(magrittr)
@@ -62,24 +65,57 @@ NSTEP <- 70
 ###############
 ##
 
-# Data with overlap values and percentage of activated voxels
-MatrixOverlap <- readRDS(paste(LocIntRes,'/MaitraOverlap.rda',sep=''))
+# Vector with all sample sizes
+sampleSize <- rep(seq(10,700,by=10), NRUNS)
+
+# Empty data frame
+Overlap <- Correlation <- data.frame() %>%
+  as_tibble()
+
+# Loop over the contrasts
+for(s in 1:length(contrast)){
+  # Select the contrast
+  contr <- contrast[s]
+  
+  # Get the correct location of intermediate results
+  ContrLocIntRes <- ifelse(contr == 'ML',
+     LocIntRes,
+     paste(LocIntRes, contr, '/', sep = ''))
+  
+  # Read in data with overlap values and percentage of activated voxels
+  Overlap <- 
+    readRDS(paste(ContrLocIntRes,'MaitraOverlap.rda',sep='')) %>% 
+    matrix(., ncol = 1) %>% 
+    data.frame('overlap' = .,
+               'sampleSize' = sampleSize) %>%
+    as_tibble(.) %>%
+    mutate(contrast = contr) %>%
+    bind_rows(Overlap, .)
+  
+  # Read in data with overlap values and percentage of activated voxels
+  Correlation <- 
+    readRDS(paste(ContrLocIntRes,'MatrixCorrelation.rda',sep='')) %>% 
+    matrix(., ncol = 1) %>% 
+    data.frame('PearsonCorr' = .,
+               'sampleSize' = sampleSize) %>%
+    as_tibble(.) %>%
+    mutate(contrast = contr) %>%
+    bind_rows(Correlation, .)
+}
+
+# Data with percentage of activated voxels (extra plots): MATH > LANGUAGE
 PercAct <- readRDS(paste(LocIntRes,'/PercActMaitraOverlap.rda',sep=''))
 
 # Data with overlap using adaptive thresholding, its percentage of activated voxels
-# and the significance thresholding levels
+# and the significance thresholding levels: MATH > LANGUAGE
 MatrixOverlapAdap <- readRDS(paste(LocIntRes,'/MatrixOverlapAdap.rda', sep = ''))
 PercActAdap <- readRDS(paste(LocIntRes,'/PercActAdap.rda', sep = ''))
 SignLevels <- readRDS(paste(LocIntRes,'/SignLevels.rda', sep = ''))
 
+
 # Data with the Pearson correlation 
 MatrixCorrelation <- readRDS(paste(LocIntRes,'/MatrixCorrelation.rda', sep = ''))
 
-# Vector with all sample sizes
-sampleSize <- rep(seq(10,700,by=10), NRUNS)
-
-# Variables for plotting
-subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 
 ##
 ###############
@@ -87,21 +123,37 @@ subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 ###############
 ##
 
+# Variables for plotting
+subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
+
+# Put NaN of overlap values to zero
+Overlap$overlap[is.na(Overlap$overlap)] <- 0
+
+# Missing values (when N > 30 AND FACES): to NA instead of 0
+Overlap[Overlap$sampleSize >= 30 &
+          Overlap$contrast == 'Faces' & Overlap$overlap == 0,'overlap'] <- NA
+# Percentage missing values
+PercNA <- sum(is.na(Overlap$overlap))/dim(Overlap)[1] * 100
+
+# Make factor of contrasts
+Overlap$contrastL <- factor(Overlap$contrast, levels = contrast,
+                         labels = c('M > L', 
+                                    'A F > C'))
+Correlation$contrastL <- factor(Correlation$contrast, levels = contrast,
+          labels = c('M > L', 
+                     'A F > C'))
+
 # Set window 
 quartz.options(width=18,height=12)
 
 #################
-## Points for overlap with smoothed regression line
+## Points for overlap with smoothed regression line: MATH > FACES
 #################
 
-# Data frame and plot
-Overlap <- data.frame('overlap' = matrix(MatrixOverlap,ncol=1),
-                      'sampleSize' = sampleSize)
-# Put NaN to zero
-Overlap$overlap[is.na(Overlap$overlap)] <- 0
-
 # Create plot
-overlapPlot <- ggplot(Overlap, aes(x = sampleSize, y = overlap)) + 
+overlapPlot <- Overlap %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x = sampleSize, y = overlap)) + 
   geom_point(size = 0.6) +
   geom_smooth(aes(x = sampleSize, y = overlap),
           method = 'loess', 
@@ -113,19 +165,51 @@ overlapPlot <- ggplot(Overlap, aes(x = sampleSize, y = overlap)) +
 overlapPlot
 
 # Or using a boxplot
-overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
+overlapBoxPlot <- Overlap %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x=factor(sampleSize), y = overlap)) + 
   geom_boxplot(outlier.size = .7) +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
   scale_y_continuous(name=expression(Overlap~~ (omega))) +
   theme_bw()
 overlapBoxPlot
 
-# Version for OHBM 2018 (and paper!)
+#################
+## Version for paper: MATH > LANGUAGE AND ALL CONTRASTS
+#################
+
+# Version with M > L
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
-overlapBoxPlot <- ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
+overlapBoxPlotML <- Overlap %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x=factor(sampleSize), y = overlap)) + 
   geom_boxplot(outlier.size = .7, outlier.color = 'orange') +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
   scale_y_continuous(name=expression(Overlap~~(omega))) +
+  labs(title = 'Conditional test-retest reliability',
+       subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+overlapBoxPlotML
+
+# Different contrasts
+overlapBoxPlot <- 
+  ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
+  geom_boxplot(aes(fill = contrastL),
+    outlier.size = .7, outlier.color = 'orange') +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~(omega))) +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
   labs(title = 'Conditional test-retest reliability',
        subtitle = 'FDR = 0.05') +
   theme_classic() +
@@ -144,17 +228,20 @@ overlapBoxPlot
 
 # Median overlap at N = 200
 Overlap %>%
+  filter(contrast == 'ML') %>%
   filter(sampleSize == 200) %>%
   summarise(med = median(overlap))
 
 # Maximum overlap
 Overlap %>% as_tibble() %>%
+  filter(contrast == 'ML') %>%
   group_by(sampleSize) %>%
   summarise(AvOver = mean(overlap)) %>%
   filter(AvOver == max(AvOver))
 
 # Median overlap at N = 30
 Overlap %>%
+  filter(contrast == 'ML') %>%
   filter(sampleSize == 30) %>%
   summarise(med = median(overlap))
 
@@ -253,10 +340,14 @@ AdaptOverlap
 #################
 
 ## Prepare matrix
-Correlation <- data.frame('PearsonCorr' = matrix(MatrixCorrelation,ncol=1), 
-                          'sampleSize' = sampleSize)
+# Correlation <- data.frame('PearsonCorr' = matrix(MatrixCorrelation,ncol=1), 
+#                          'sampleSize' = sampleSize)
 
-corrPlot <- ggplot(Correlation, aes(x = sampleSize, y = PearsonCorr)) +
+# MATH > LANGUAGE
+corrPlot <- 
+  Correlation %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x = sampleSize, y = PearsonCorr)) +
   geom_point(colour='black',size = 0.6) +
   geom_smooth(aes(x = sampleSize, y = PearsonCorr),
               method = 'loess', 
@@ -267,17 +358,23 @@ corrPlot <- ggplot(Correlation, aes(x = sampleSize, y = PearsonCorr)) +
   theme_bw()
 corrPlot
 
-# Or using a boxplot
-corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
+# Or using a boxplot: MATH > LANGUAGE
+corrBoxPlot <- 
+  Correlation %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x=factor(sampleSize), y = PearsonCorr)) + 
   geom_boxplot(outlier.size = .7) +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
   scale_y_continuous(name='Pearson product-moment correlation coefficient') +
   theme_bw()
 corrBoxPlot
 
-# Version for OHBM 2018 (and paper!)
+# Version for OHBM 2018: MATH > LANGUAGE
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
-corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
+corrBoxPlot <- 
+  Correlation %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x=factor(sampleSize), y = PearsonCorr)) + 
   geom_boxplot(outlier.size = .7, outlier.colour = 'orange') +
   scale_x_discrete(breaks = subjBreak, name="Sample size") +
   scale_y_continuous(name=expression(Pearson~ product~-~moment~ correlation~ coefficient~~(rho))) +
@@ -295,6 +392,30 @@ corrBoxPlot <- ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) +
         plot.title = element_text(hjust = 0.5),
         legend.position = 'bottom')
 corrBoxPlot
+
+# Version with all contrasts
+corrBoxPlotC <- 
+  ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
+  geom_boxplot(aes(fill = contrastL),
+    outlier.size = .7, outlier.colour = 'orange') +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
+  scale_y_continuous(name=expression(Pearson~ product~-~moment~ correlation~ coefficient~~(rho))) +
+  theme_classic() +
+  labs(title = 'Unconditional test-retest reliability') +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+corrBoxPlotC
+
 
 # Maximum value
 Correlation %>%

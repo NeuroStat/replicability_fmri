@@ -37,6 +37,23 @@
 # Location of intermediate results
 LocIntRes <- '../_IntData/'
 
+# Possible contrasts: default = MATH > LANGUAGE
+contrast <- c('ML', 'Faces')
+contr <- contrast[2]
+
+# # Select the possible thresholding scenario's
+# if(contr == 'ML'){
+#   scenario_pos <- c('unc', 'fdr')
+# }
+# if(contr == 'Faces'){
+#   scenario_pos <- c('fdr')
+# }
+
+# Get the correct location of intermediate results
+ContrLocIntRes <- ifelse(contr == 'ML',
+         LocIntRes,
+         paste(LocIntRes, contr, '/', sep = ''))
+
 # Load in libraries
 library(tidyverse)
 library(magrittr)
@@ -70,16 +87,16 @@ subjBreak <- c(10, seq(100,700, by=100))
 ##
 
 # Data frame with cluster sizes
-ClustSize <- readRDS(paste(LocIntRes, 'ClustSize.rda', sep = ''))
+ClustSize <- readRDS(paste(ContrLocIntRes, 'ClustSize.rda', sep = ''))
 
 # Data frame with number of unique and total clusters
-numUniqClust <- readRDS(paste(LocIntRes, 'numUniqClust.rda', sep = ''))
+numUniqClust <- readRDS(paste(ContrLocIntRes, 'numUniqClust.rda', sep = ''))
 
 # Data frame with number of unique and total clusters when using a cut-off percentage
-numPercClust <- readRDS(paste(LocIntRes, 'numPercClust.rda', sep = ''))
+numPercClust <- readRDS(paste(ContrLocIntRes, 'numPercClust.rda', sep = ''))
 
 # Data frame with proportion of overlapping voxels in the clusters
-propOverVox <- readRDS(paste(LocIntRes, 'propOverVox.rda', sep = ''))
+propOverVox <- readRDS(paste(ContrLocIntRes, 'propOverVox.rda', sep = ''))
 
 
 ##
@@ -764,7 +781,7 @@ plot_grid(AvgClustS, PropLargC,
           OverlClust1VoxCutOff, IntsCluster, 
           labels = c("A", "B", "C", "D", "E", "F"), nrow = 3, align = "hv",
           axis = 'tblr')
-ggsave(filename = paste0(getwd(), '/FullStabilityCutOff.png'),
+ggsave(filename = paste0(getwd(), '/FullStabilityCutOff_',contr,'.png'),
        plot = ggplot2::last_plot(),
        width = 26, height = 32, units = 'cm', scale = 1)
 

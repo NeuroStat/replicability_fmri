@@ -33,7 +33,25 @@
 ##
 
 # Source paths
-source(blind_PreProcessing.R)
+source('blind_PreProcessing.R')
+
+# Possible contrasts: default = MATH > LANGUAGE
+contrast <- c('ML', 'Faces')
+contr <- contrast[2]
+
+# Stability is plotted on separate figures for each contrast
+# Therefor, we can use different objects
+if(contr == 'ML'){
+  RawDat <- RawDatSplit
+}
+if(contr == 'Faces'){
+  RawDat <- RawDatSplitF
+}
+
+# Paste contrast to save data location (unless contrast is default)
+SaveLocC <- ifelse(contr == 'ML',
+             SaveLoc,
+             paste(SaveLoc, '/', contr, sep = ''))
 
 # Load in libraries
 library(lattice)
@@ -124,8 +142,9 @@ for(i in 1:NRUNS){
   if(i==NRUNS) print("100% done")
 }
 
-# Transform NaN values to 0
+# Transform NaN/NA values to 0
 MatrixOverlap[is.nan(MatrixOverlap)] <- 0
+MatrixOverlap[is.na(MatrixOverlap)] <- 0
 
 # Check for missing values (TRUE = missing somewhere)
 complete.cases(t(MatrixOverlap))
@@ -142,8 +161,8 @@ apply(MatrixOverlap,c(2),MissingValues)
 ##
 
 ## Save R objects
-saveRDS(MatrixOverlap, file=paste(SaveLoc,'/MaitraOverlap.rda',sep=''))
-saveRDS(PercAct,file=paste(SaveLoc,'/PercActMaitraOverlap.rda',sep=''))
+saveRDS(MatrixOverlap, file=paste(SaveLocC,'/MaitraOverlap.rda',sep=''))
+saveRDS(PercAct,file=paste(SaveLocC,'/PercActMaitraOverlap.rda',sep=''))
 
 
 ########################################################################################################################
@@ -318,6 +337,7 @@ for(i in 1:NRUNS){
 
 # Transform NaN values to 0
 MatrixOverlapFDR[is.nan(MatrixOverlapFDR)] <- 0
+MatrixOverlapFDR[is.na(MatrixOverlapFDR)] <- 0
 
 # Check for missing values (TRUE = missing somewhere)
 complete.cases(t(MatrixOverlapFDR))
@@ -330,7 +350,7 @@ apply(MatrixOverlapFDR,c(2),MissingValues)
 IDTh <- sub(pattern = '.', replacement = '_', x = FDR_Pth, fixed = TRUE)
 
 ## Save R objects
-saveRDS(MatrixOverlapFDR, file=paste(SaveLoc,'/MaitraOverlapFDR',IDTh, '.rda',sep=''))
+saveRDS(MatrixOverlapFDR, file=paste(SaveLocC,'/MaitraOverlapFDR',IDTh, '.rda',sep=''))
 
 
 

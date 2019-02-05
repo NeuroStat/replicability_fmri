@@ -33,6 +33,9 @@
 # Location of intermediate results
 LocIntRes <- '../_IntData/'
 
+# Possible contrasts: default = MATH > LANGUAGE
+contrast <- c('ML', 'Faces')
+
 # Load in libraries
 library(tidyverse)
 library(magrittr)
@@ -109,10 +112,6 @@ dimSeq <- dim(sequence)[1]
 # Variables for plotting
 subjBreak <- c(seq(10,110,by=20), seq(150,NTOT, by=50))
 
-# Possible thresholding scenario (uncorrected or fdr)
-scenario_pos <- c('unc', 'fdr')
-#scenario <- scenario_pos[1]
-
 ##
 ###############
 ### Read in data
@@ -121,31 +120,51 @@ scenario_pos <- c('unc', 'fdr')
 
 # Data frame with estimated parameters using EM: voxelwise FDR and uncorrected
 EMParam <- data.frame() %>% as_tibble()
-for(r in 1:length(scenario_pos)){
-  EMParam <-
-    readRDS(paste0(LocIntRes, 'EM_params_', scenario_pos[r],'.rda')) %>% 
-      mutate(threshold = scenario_pos[r]) %>%
-    bind_rows(EMParam, .)
+for(s in 1:length(contrast)){
+  # Select the contrast
+  contr <- contrast[s]
+  
+  # Select the possible thresholding scenario's
+  if(contr == 'ML'){
+    scenario_pos <- c('unc', 'fdr')
+  }
+  if(contr == 'Faces'){
+    scenario_pos <- c('fdr')
+  }
+  
+  # Get the correct location of intermediate results
+  ContrLocIntRes <- ifelse(contr == 'ML',
+        LocIntRes,
+        paste(LocIntRes, contr, '/', sep = ''))
+
+  # Loop over the thresholding scenario's and bind to data frame
+  for(r in 1:length(scenario_pos)){
+    EMParam <-
+      readRDS(paste0(ContrLocIntRes, 'EM_params_', scenario_pos[r],'.rda')) %>% 
+        mutate(contrast = contr,
+          threshold = scenario_pos[r]) %>%
+      bind_rows(EMParam, .)
+  }
 }
 
-# Add sequence information
+# Add sequence information: don't know what this is now...
 EMParam$sequence <- factor(rep(rep(1:(dim(EMParam)[1]/4), each = 2), 2))
 
 ##
 ###############
-### Check results of EM: FDR only
+### Check results of EM: FDR and MATH contrast only
 ###############
 ##
 
 # Let us plot the amount of iterations needed to estimate the parameters
-EMParam %>% filter(final == TRUE) %>%
+EMParam %>% filter(final == TRUE & contrast == 'ML') %>%
   filter(threshold == 'fdr') %>%
   ggplot(., aes(sequence, num.iter)) +
   geom_col()
 # Not very informative...
 
 # Better have some kind of barplot
-EMParam %>% filter(threshold == 'fdr') %>%
+EMParam %>% filter(threshold == 'fdr' & contrast == 'ML') %>%
   ggplot(., aes(num.iter, group = final)) +
     geom_bar(aes(fill = final), position = 'dodge2') +
     scale_y_continuous("Count over all steps * runs") +
@@ -157,10 +176,10 @@ ggsave(filename = paste(getwd(), '/EM_Checks/iterations_EM.png', sep = ''), plot
 
 # Difference in coefficients
 # Values of first run
-valF <- EMParam %>% filter(final == FALSE) %>% filter(threshold == 'fdr') %>%
+valF <- EMParam %>% filter(final == FALSE & contrast == 'ML') %>% filter(threshold == 'fdr') %>%
   select(lambda, PI1, PI2)
 # Values of second run
-valS <- EMParam %>% filter(final == TRUE) %>% filter(threshold == 'fdr') %>%
+valS <- EMParam %>% filter(final == TRUE & contrast == 'ML') %>% filter(threshold == 'fdr') %>%
   select(lambda, PI1, PI2)
 
 # Plot difference
@@ -186,12 +205,13 @@ for(r in 1:length(plotRuns)){
 
 ##
 ###############
-### Calculate Cohen's Kappa: FDR
+### Calculate Cohen's Kappa: FDR and MATH contrast
 ###############
 ##
 
 # Filter the final estimates
-Kappa <- EMParam %>% filter(final == TRUE) %>% filter(threshold == 'fdr') %>%
+Kappa <- EMParam %>% filter(final == TRUE & contrast == 'ML') %>%
+  filter(threshold == 'fdr') %>%
   # Remove columns that don't provide information
   select(-num.iter, -final, -sequence) %>%
   # Transform step to sample size
@@ -254,7 +274,7 @@ ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) +
 # Set window 
 quartz.options(width=18,height=12)
 
-# Version OHBM 2018 (and paper!)
+# Version OHBM 2018
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 KappaPlot <- ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) + 
   geom_boxplot(outlier.size = .7, outlier.color = 'orange', size = 0.3) +
@@ -294,6 +314,65 @@ Kappa %>%
   summarise(MedKap = median(kappa)) %>%
   filter(SampleSize == 30)
 
+
+##
+###############
+### Calculate Cohen's Kappa: FDR + MATH and FACES contrast
+###############
+##
+
+# Filter the final estimates
+KappaC <- EMParam %>% filter(final == TRUE) %>%
+  filter(threshold == 'fdr') %>%
+  # Remove columns that don't provide information
+  select(-num.iter, -final, -sequence) %>%
+  # Transform step to sample size
+  mutate(SampleSize = step * 10) %>%
+  # Calculate Kappa
+  mutate(kappa = NeuRRoStat::CohenKappa(lambda = lambda, piA1 = PI1, piI1 = PI2)) %>%
+  # Put NaN to 0
+  mutate(kappa = ifelse(is.nan(kappa), 0, kappa)) %>%
+  # Remove columns
+  select(run, SampleSize, kappa, contrast)
+
+# Labels for contrasts
+KappaC$contrastL <- factor(KappaC$contrast, levels = contrast,
+                          labels = c('M > L', 
+                                     'A F > C'))
+
+# Plot for paper (HBM revision)
+subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
+KappaPlotC <- ggplot(KappaC, aes(x=factor(SampleSize), y = kappa)) + 
+  geom_boxplot(outlier.size = .2, outlier.color = 'orange', size = 0.25,
+               aes(fill = contrastL)) +
+  scale_x_discrete(breaks = subjBreak, name = "Sample size") +
+  scale_y_continuous(name=expression(Coherence~~(kappa)), breaks = seq(0,1,0.2)) +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 2) +
+  labs(title = 'Concordance/coherence',
+       subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        legend.text = element_text(size = 7, face = 'plain'),
+        legend.title = element_text(size = 7, face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'right')
+KappaPlotC
+
+# Save the plot
+ggsave(filename = paste0(getwd(), '/Kappa_FDR_05_contrasts.png'),
+       plot = KappaPlotC,
+       width = 20, height = 14, units = 'cm', scale = 0.9)
+
+
+
 ##
 ###############
 ### Calculate Cohen's Kappa: comparing uncorrected, FDR and the one from Thirion
@@ -302,7 +381,7 @@ Kappa %>%
 
 # First calculate Kappa as written in text of Thirion et al. (2007)
 # Filter the final estimates
-Kappa_both <- EMParam %>% filter(final == TRUE) %>% 
+Kappa_both <- EMParam %>% filter(final == TRUE & contrast == 'ML') %>% 
   # Remove columns that don't provide information
   select(-num.iter, -final, -sequence) %>%
   # Transform step to sample size
@@ -340,7 +419,7 @@ ggplot(Kappa_both, aes(x=factor(SampleSize), y = value, fill = threshold)) +
 ##
 
 Kappa_both %>% 
-  filter(typeOfkappa == 'kappa') %>%
+  filter(typeOfkappa == 'kappa' & contrast == 'ML') %>%
   ggplot(., aes(x=factor(SampleSize), y = value, fill = threshold)) + 
     geom_boxplot(aes(x = factor(SampleSize), fill = threshold), outlier.size = .4, outlier.color = 'orange', size = 0.3) +
     scale_x_discrete(breaks = subjBreak, name = "Sample size") +
@@ -353,7 +432,7 @@ Kappa_both %>%
 
 # Median kappa >= 0.80 in both thresholding levels?
 Kappa_both %>% 
-  filter(typeOfkappa == 'kappa') %>%
+  filter(typeOfkappa == 'kappa' & contrast == 'ML') %>%
   group_by(SampleSize, threshold) %>%
   summarise(MedKap = median(value)) %>%
   filter(MedKap >= 0.80)
@@ -367,7 +446,7 @@ Kappa_both %>%
 ##
 
 subjBreak <- c(10, seq(50, NTOT, by = 50))
-EMParam %>% filter(final == TRUE) %>% 
+EMParam %>% filter(final == TRUE & contrast == 'ML') %>% 
   filter(threshold == 'fdr') %>%
   # Remove columns that don't provide information
   select(-num.iter, -final, -sequence) %>%

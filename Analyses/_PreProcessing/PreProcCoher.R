@@ -21,7 +21,7 @@
 
 # Here we read in the summed maps and then estimate the mixture using an EM algorithm.
 
-
+# All contrasts can be selected here
 
 ##
 ###############
@@ -30,16 +30,28 @@
 ##
 
 # Source paths
-source(blind_PreProcessing.R)
+source('blind_PreProcessing.R')
 
 # Possible thresholding scenario
 scenario_pos <- c('uncorrected', 'fdr')
-scenario <- scenario_pos[1]
+scenario <- scenario_pos[2]
+
+# Possible contrasts: default = MATH > LANGUAGE
+contrast <- c('ML', 'Faces')
+contr <- contrast[2]
 
 # Location of raw data: not included in Github folder (too large)
+# Also take the correct contrast
 RawDat <- ifelse(scenario == 'uncorrected',
-                 RawDatCohUnc,
-                 RawDatCohFDR)
+            ifelse(contr == 'ML',
+                 RawDatCohUnc,RawDatCohUncF),
+            ifelse(contr == 'ML',
+                 RawDatCohFDR, RawDatCohFDRF))
+
+# Paste contrast to save data location (unless contrast is default)
+SaveLoc <- ifelse(contr == 'ML',
+                  SaveLoc,
+                 paste(SaveLoc, '/', contr, sep = ''))
 
 # Load in libraries
 library(tidyverse)
@@ -185,6 +197,20 @@ if(scenario == 'uncorrected'){
 if(scenario == 'fdr'){
   saveRDS(EM_params, file = paste(SaveLoc, '/EM_params_fdr.rda', sep = ''))  
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
