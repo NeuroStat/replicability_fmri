@@ -34,7 +34,7 @@
 LocIntRes <- '../_IntData/'
 
 # Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces')
+contrast <- c('ML', 'Faces','Incentive', 'StopGo')
 
 # Load in libraries
 library(tidyverse)
@@ -128,26 +128,21 @@ for(s in 1:length(contrast)){
   if(contr == 'ML'){
     scenario_pos <- c('unc', 'fdr')
   }
-  if(contr == 'Faces'){
+  if(contr != 'ML'){
     scenario_pos <- c('fdr')
   }
-  
-  # Get the correct location of intermediate results
-  ContrLocIntRes <- ifelse(contr == 'ML',
-        LocIntRes,
-        paste(LocIntRes, contr, '/', sep = ''))
 
   # Loop over the thresholding scenario's and bind to data frame
   for(r in 1:length(scenario_pos)){
     EMParam <-
-      readRDS(paste0(ContrLocIntRes, 'EM_params_', scenario_pos[r],'.rda')) %>% 
+      readRDS(paste0(LocIntRes, contr, '/', 'EM_params_', scenario_pos[r],'.rda')) %>% 
         mutate(contrast = contr,
           threshold = scenario_pos[r]) %>%
       bind_rows(EMParam, .)
   }
 }
 
-# Add sequence information: don't know what this is now...
+# Add sequence information: don't know what this is anymore...
 EMParam$sequence <- factor(rep(rep(1:(dim(EMParam)[1]/4), each = 2), 2))
 
 ##
@@ -176,10 +171,12 @@ ggsave(filename = paste(getwd(), '/EM_Checks/iterations_EM.png', sep = ''), plot
 
 # Difference in coefficients
 # Values of first run
-valF <- EMParam %>% filter(final == FALSE & contrast == 'ML') %>% filter(threshold == 'fdr') %>%
+valF <- EMParam %>% filter(final == FALSE & contrast == 'ML') %>% 
+  filter(threshold == 'fdr') %>%
   select(lambda, PI1, PI2)
 # Values of second run
-valS <- EMParam %>% filter(final == TRUE & contrast == 'ML') %>% filter(threshold == 'fdr') %>%
+valS <- EMParam %>% filter(final == TRUE & contrast == 'ML') %>% 
+  filter(threshold == 'fdr') %>%
   select(lambda, PI1, PI2)
 
 # Plot difference
@@ -337,8 +334,10 @@ KappaC <- EMParam %>% filter(final == TRUE) %>%
 
 # Labels for contrasts
 KappaC$contrastL <- factor(KappaC$contrast, levels = contrast,
-                          labels = c('M > L', 
-                                     'A F > C'))
+                          labels = c('cogntive', 
+                                     'faces',
+                                     'incentive',
+                                     'stop-go'))
 
 # Plot for paper (HBM revision)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
@@ -347,7 +346,7 @@ KappaPlotC <- ggplot(KappaC, aes(x=factor(SampleSize), y = kappa)) +
                aes(fill = contrastL)) +
   scale_x_discrete(breaks = subjBreak, name = "Sample size") +
   scale_y_continuous(name=expression(Coherence~~(kappa)), breaks = seq(0,1,0.2)) +
-  scale_fill_brewer('contrast ', type = 'qual', palette = 2) +
+  scale_fill_brewer('task ', type = 'qual', palette = 2) +
   labs(title = 'Concordance/coherence',
        subtitle = 'FDR = 0.05') +
   theme_classic() +
@@ -400,7 +399,8 @@ Kappa_both <- EMParam %>% filter(final == TRUE & contrast == 'ML') %>%
 
 # Plot the results
 ggplot(Kappa_both, aes(x=factor(SampleSize), y = value, fill = threshold)) + 
-  geom_boxplot(aes(x = factor(SampleSize), fill = threshold), outlier.size = .4, outlier.color = 'orange', size = 0.3) +
+  geom_boxplot(aes(x = factor(SampleSize), fill = threshold), 
+               outlier.size = .4, outlier.color = 'orange', size = 0.3) +
   scale_x_discrete(breaks = subjBreak, name = "Sample size") +
   scale_y_continuous(name='Kappa', breaks = seq(0,1,0.2)) +
   scale_fill_brewer('Threshold', labels = c('FDR 0.05', 'Uncorrected 0.001'), 
@@ -421,7 +421,8 @@ ggplot(Kappa_both, aes(x=factor(SampleSize), y = value, fill = threshold)) +
 Kappa_both %>% 
   filter(typeOfkappa == 'kappa' & contrast == 'ML') %>%
   ggplot(., aes(x=factor(SampleSize), y = value, fill = threshold)) + 
-    geom_boxplot(aes(x = factor(SampleSize), fill = threshold), outlier.size = .4, outlier.color = 'orange', size = 0.3) +
+    geom_boxplot(aes(x = factor(SampleSize), fill = threshold), 
+                 outlier.size = .4, outlier.color = 'orange', size = 0.3) +
     scale_x_discrete(breaks = subjBreak, name = "Sample size") +
     scale_y_continuous(name='Kappa', breaks = seq(0,1,0.2)) +
     scale_fill_brewer('Threshold', labels = c('FDR 0.05', 'Uncorrected 0.001'), 

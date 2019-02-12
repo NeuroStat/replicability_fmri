@@ -36,7 +36,7 @@
 LocIntRes <- '../_IntData/'
 
 # Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces')
+contrast <- c('ML', 'Faces', 'Incentive')
 
 # Load in libraries
 library(tidyverse)
@@ -77,14 +77,9 @@ for(s in 1:length(contrast)){
   # Select the contrast
   contr <- contrast[s]
   
-  # Get the correct location of intermediate results
-  ContrLocIntRes <- ifelse(contr == 'ML',
-     LocIntRes,
-     paste(LocIntRes, contr, '/', sep = ''))
-  
   # Read in data with overlap values and percentage of activated voxels
   Overlap <- 
-    readRDS(paste(ContrLocIntRes,'MaitraOverlap.rda',sep='')) %>% 
+    readRDS(paste(LocIntRes, '/', contr, 'MaitraOverlap.rda',sep='')) %>% 
     matrix(., ncol = 1) %>% 
     data.frame('overlap' = .,
                'sampleSize' = sampleSize) %>%
@@ -94,7 +89,7 @@ for(s in 1:length(contrast)){
   
   # Read in data with overlap values and percentage of activated voxels
   Correlation <- 
-    readRDS(paste(ContrLocIntRes,'MatrixCorrelation.rda',sep='')) %>% 
+    readRDS(paste(LocIntRes, '/', contr, 'MatrixCorrelation.rda',sep='')) %>% 
     matrix(., ncol = 1) %>% 
     data.frame('PearsonCorr' = .,
                'sampleSize' = sampleSize) %>%
@@ -104,17 +99,13 @@ for(s in 1:length(contrast)){
 }
 
 # Data with percentage of activated voxels (extra plots): MATH > LANGUAGE
-PercAct <- readRDS(paste(LocIntRes,'/PercActMaitraOverlap.rda',sep=''))
+PercAct <- readRDS(paste(LocIntRes,'/ML/PercActMaitraOverlap.rda',sep=''))
 
 # Data with overlap using adaptive thresholding, its percentage of activated voxels
 # and the significance thresholding levels: MATH > LANGUAGE
-MatrixOverlapAdap <- readRDS(paste(LocIntRes,'/MatrixOverlapAdap.rda', sep = ''))
-PercActAdap <- readRDS(paste(LocIntRes,'/PercActAdap.rda', sep = ''))
-SignLevels <- readRDS(paste(LocIntRes,'/SignLevels.rda', sep = ''))
-
-
-# Data with the Pearson correlation 
-MatrixCorrelation <- readRDS(paste(LocIntRes,'/MatrixCorrelation.rda', sep = ''))
+MatrixOverlapAdap <- readRDS(paste(LocIntRes,'/ML/MatrixOverlapAdap.rda', sep = ''))
+PercActAdap <- readRDS(paste(LocIntRes,'/ML/PercActAdap.rda', sep = ''))
+SignLevels <- readRDS(paste(LocIntRes,'/ML/SignLevels.rda', sep = ''))
 
 
 ##
