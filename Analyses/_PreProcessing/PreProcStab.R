@@ -40,8 +40,8 @@
 source('blind_PreProcessing.R')
 
 # Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces')
-contr <- contrast[2]
+contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
+contr <- contrast[4]
 
 # Stability is plotted on separate figures for each contrast
 # Therefor, we can use different objects
@@ -51,11 +51,12 @@ if(contr == 'ML'){
 if(contr == 'Faces'){
   RawDat <- RawDatStabF
 }
-
-# Paste contrast to save data location (unless contrast is default)
-SaveLocC <- ifelse(contr == 'ML',
-    SaveLoc,
-    paste(SaveLoc, '/', contr, sep = ''))
+if(contr == 'Incentive'){
+  RawDat <- RawDatStabI
+}
+if(contr == 'StopGo'){
+  RawDat <- RawDatStabS
+}
 
 # Load in libraries
 library(tidyverse)
@@ -161,6 +162,10 @@ for(i in 1:NRUNS){
   }
   # For loop over all steps
   for(j in 1:NSTEP){
+    #if(i == 42 && j == 66) next # 42-66-1
+    #if(i == 44 && j == 68) next # 42-66-1
+    #if(i == 48 && j == 62) next # 48-62-2
+    #if(i == 48 && j == 63) next # 48-62-2
     #########################
     ##### CLUSTER SIZES #####
     #########################
@@ -211,13 +216,22 @@ for(i in 1:NRUNS){
       if(any(matchC > 0)) comClustMax <- c(comClustMax, r)
     }
     
-    # Remove 0 from both vectors
-    comClustMin <- comClustMin[comClustMin != 0]
-    comClustMax <- comClustMax[comClustMax != 0]
+    # If there are common clusters, then remove the 0
+    if(any(comClustMin > 0)){
+      comClustMin <- comClustMin[comClustMin != 0]
+    }else{
+      comClustMin <- 0
+    }
+    if(any(comClustMax > 0)){
+      comClustMax <- comClustMax[comClustMax != 0]
+    }else{
+      comClustMax <- 0
+    }
+
     # Remaining clusters: the ones that are not overlapping
       # sum over both images
-    uniCluster <- sum(!1:max(clusters[,IDmin]) %in% comClustMin) + 
-                    sum(!1:max(clusters[,IDmax]) %in% comClustMax)
+    uniCluster <- sum(!min(1, min(comClustMin)):max(clusters[,IDmin]) %in% comClustMin) + 
+                    sum(!min(1, min(comClustMax)):max(clusters[,IDmax]) %in% comClustMax)
     
     # The total amount of clusters
       # --> NOTE: this is the total over BOTH images (so not the total per analysis)
@@ -343,10 +357,10 @@ ClustSize %<>% mutate(NumMask = NumMask)
 ##
 
 
-saveRDS(ClustSize, paste(SaveLocC,'/ClustSize.rda', sep = ''))
-saveRDS(numUniqClust, paste(SaveLocC,'/numUniqClust.rda', sep = ''))
-saveRDS(numPercClust, paste(SaveLocC,'/numPercClust.rda', sep = ''))
-saveRDS(propOverVox, paste(SaveLocC,'/propOverVox.rda', sep = ''))
+saveRDS(ClustSize, paste(SaveLoc, '/', contr, '/ClustSize.rda', sep = ''))
+saveRDS(numUniqClust, paste(SaveLoc, '/', contr, '/numUniqClust.rda', sep = ''))
+saveRDS(numPercClust, paste(SaveLoc, '/', contr, '/numPercClust.rda', sep = ''))
+saveRDS(propOverVox, paste(SaveLoc, '/', contr, '/propOverVox.rda', sep = ''))
 
 
 
