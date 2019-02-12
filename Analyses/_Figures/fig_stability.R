@@ -38,21 +38,8 @@
 LocIntRes <- '../_IntData/'
 
 # Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces')
-contr <- contrast[2]
-
-# # Select the possible thresholding scenario's
-# if(contr == 'ML'){
-#   scenario_pos <- c('unc', 'fdr')
-# }
-# if(contr == 'Faces'){
-#   scenario_pos <- c('fdr')
-# }
-
-# Get the correct location of intermediate results
-ContrLocIntRes <- ifelse(contr == 'ML',
-         LocIntRes,
-         paste(LocIntRes, contr, '/', sep = ''))
+contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
+contr <- contrast[4]
 
 # Load in libraries
 library(tidyverse)
@@ -87,16 +74,16 @@ subjBreak <- c(10, seq(100,700, by=100))
 ##
 
 # Data frame with cluster sizes
-ClustSize <- readRDS(paste(ContrLocIntRes, 'ClustSize.rda', sep = ''))
+ClustSize <- readRDS(paste(LocIntRes, contr, '/', 'ClustSize.rda', sep = ''))
 
 # Data frame with number of unique and total clusters
-numUniqClust <- readRDS(paste(ContrLocIntRes, 'numUniqClust.rda', sep = ''))
+numUniqClust <- readRDS(paste(LocIntRes, contr, '/', 'numUniqClust.rda', sep = ''))
 
 # Data frame with number of unique and total clusters when using a cut-off percentage
-numPercClust <- readRDS(paste(ContrLocIntRes, 'numPercClust.rda', sep = ''))
+numPercClust <- readRDS(paste(LocIntRes, contr, '/', 'numPercClust.rda', sep = ''))
 
 # Data frame with proportion of overlapping voxels in the clusters
-propOverVox <- readRDS(paste(ContrLocIntRes, 'propOverVox.rda', sep = ''))
+propOverVox <- readRDS(paste(LocIntRes, contr, '/', 'propOverVox.rda', sep = ''))
 
 
 ##
@@ -392,7 +379,8 @@ SDClustSize <-
   ggplot(., aes(x = SampleSize, y = sdSize)) + 
   geom_line(size = 0.9) + 
   scale_x_continuous(breaks = subjBreak, 'Sample size') +
-  scale_y_continuous('Standard deviation on number of voxels', labels = scales::scientific) +
+  scale_y_continuous('Standard deviation on number of voxels', 
+                     labels = scales::scientific) +
   labs(title = 'Variability of size of largest cluster',
        subtitle = 'Z = 2.3 and FWER = 0.05') +
   theme_classic() +
