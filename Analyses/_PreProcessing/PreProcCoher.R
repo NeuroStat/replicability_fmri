@@ -36,22 +36,29 @@ source('blind_PreProcessing.R')
 scenario_pos <- c('uncorrected', 'fdr')
 scenario <- scenario_pos[2]
 
-# Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces')
-contr <- contrast[2]
+# Possible contrasts
+contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
+contr <- contrast[4]
 
 # Location of raw data: not included in Github folder (too large)
 # Also take the correct contrast
-RawDat <- ifelse(scenario == 'uncorrected',
-            ifelse(contr == 'ML',
-                 RawDatCohUnc,RawDatCohUncF),
-            ifelse(contr == 'ML',
-                 RawDatCohFDR, RawDatCohFDRF))
-
-# Paste contrast to save data location (unless contrast is default)
-SaveLoc <- ifelse(contr == 'ML',
-                  SaveLoc,
-                 paste(SaveLoc, '/', contr, sep = ''))
+if(contr == 'ML'){
+  if(scenario == 'uncorrected'){
+    RawDat <- RawDatCohUnc
+  }
+  if(scenario == 'fdr'){
+    RawDat <- RawDatCohFDR
+  }
+}
+if(contr == 'Faces'){
+  RawDat <- RawDatCohFDRF
+}
+if(contr == 'Incentive'){
+  RawDat <- RawDatCohFDRI
+}
+if(contr == 'StopGo'){
+  RawDat <- RawDatCohFDRS
+}
 
 # Load in libraries
 library(tidyverse)
@@ -192,10 +199,12 @@ for(k in 1:NRUNS){
 
 # ID for EM_params
 if(scenario == 'uncorrected'){
-  saveRDS(EM_params, file = paste(SaveLoc, '/EM_params_unc.rda', sep = ''))  
+  saveRDS(EM_params, 
+          file = paste(SaveLoc, '/', contr, '/EM_params_unc.rda', sep = ''))  
 }
 if(scenario == 'fdr'){
-  saveRDS(EM_params, file = paste(SaveLoc, '/EM_params_fdr.rda', sep = ''))  
+  saveRDS(EM_params, 
+          file = paste(SaveLoc, '/', contr, '/EM_params_fdr.rda', sep = ''))  
 }
 
 

@@ -31,8 +31,8 @@
 source('blind_PreProcessing.R')
 
 # Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces')
-contr <- contrast[2]
+contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
+contr <- contrast[4]
 
 # Stability is plotted on separate figures for each contrast
 # Therefor, we can use different objects
@@ -42,11 +42,12 @@ if(contr == 'ML'){
 if(contr == 'Faces'){
   dat <- RawDatSplitF
 }
-
-# Paste contrast to save data location (unless contrast is default)
-SaveLocC <- ifelse(contr == 'ML',
-     SaveLoc,
-     paste(SaveLoc, '/', contr, sep = ''))
+if(contr == 'Incentive'){
+  dat <- RawDatSplitI
+}
+if(contr == 'StopGo'){
+  dat <- RawDatSplitS
+}
 
 
 # Load in libraries
@@ -139,7 +140,8 @@ complete.cases(t(MatrixCorrelation))
 ##
 
 # Save the correlations
-saveRDS(MatrixCorrelation, paste(SaveLocC,'/MatrixCorrelation.rda',sep=''))
+saveRDS(MatrixCorrelation, 
+    file = paste(SaveLoc, '/', contr, '/MatrixCorrelation.rda',sep=''))
 
 
 (i - 1)*70*2 + ((j - 1) * 2) + 1
@@ -297,8 +299,7 @@ for(i in 1:NRUNS){
 }
 
 
-
-# Save objects
+# Save objects: saveobjWD comes from blind_PreProcessing.R
 save(MatCorrAmyg,file=paste(saveobjWD,'/MatrixCorrelationFaceAmygdala',sep=''))
 
 # Or load them in
