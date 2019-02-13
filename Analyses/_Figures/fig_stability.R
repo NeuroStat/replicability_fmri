@@ -37,9 +37,15 @@
 # Location of intermediate results
 LocIntRes <- '../_IntData/'
 
+# Chosen contrast
+chosContr <- 3
+
 # Possible contrasts: default = MATH > LANGUAGE
 contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
-contr <- contrast[4]
+contr <- contrast[chosContr]
+
+# Save locations depending on contrast
+contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo')
 
 # Load in libraries
 library(tidyverse)
@@ -726,7 +732,8 @@ propOverVox %>%
 # Combine AvgClustS and PropLargC
 plot_grid(AvgClustS, PropLargC, labels = c("A", "B"), nrow = 1, align = "h",
           axis = 'b')
-ggsave(filename = paste0(getwd(), '/clusterSizes.png'),
+ggsave(filename = 
+         paste0(getwd(), '/', contrSave[chosContr], '/clusterSizes_',contr,'.png'),
        plot = ggplot2::last_plot(),
        width = 20, height = 14, units = 'cm', scale = 0.9)
 
@@ -735,18 +742,21 @@ ggsave(filename = paste0(getwd(), '/clusterSizes.png'),
 plot_grid(AvgClustS, PropLargC, OverlClust1Vox, IntsCluster,
           labels = c("A", "B", "C", "D"), nrow = 2, align = "hv",
           axis = 'tblr')
-ggsave(filename = paste0(getwd(), '/clusterStab.png'),
+ggsave(filename = 
+         paste0(getwd(), '/', contrSave[chosContr], '/clusterStab',contr,'.png'),
        plot = ggplot2::last_plot(),
        width = 20, height = 24, units = 'cm', scale = 1)
 
 # Save the SD of amount of voxels in largest cluster
-ggsave(filename = paste0(getwd(), '/clusterSD.png'),
+ggsave(filename = 
+         paste0(getwd(), '/', contrSave[chosContr], '/clusterSD',contr,'.png'),
        plot = SDClustSize, scale = 0.3)
       # width = 12, height = 10, units = 'cm', scale = 0.7)
 
 # Stability: SD of cluster count and cluster size in largest cluster
 plot_grid(SDClustCount, SDClustSize, nrow = 1, align = 'hv', axis = 'tblr')
-ggsave(filename = paste0(getwd(), '/stabilitySD.png'),
+ggsave(filename = 
+         paste0(getwd(), '/', contrSave[chosContr], '/stabilitySD',contr,'.png'),
        plot = ggplot2::last_plot(), 
        width = 12, height = 6, units = 'cm')
 
@@ -757,10 +767,10 @@ plot_grid(AvgClustS, PropLargC,
           OverlClust1Vox, IntsCluster, 
           labels = c("A", "B", "C", "D", "E", "F"), nrow = 3, align = "hv",
           axis = 'tblr')
-ggsave(filename = paste0(getwd(), '/FullStability.png'),
+ggsave(filename = 
+       paste0(getwd(), '/', contrSave[chosContr], '/FullStability',contr,'.png'),
        plot = ggplot2::last_plot(),
        width = 26, height = 32, units = 'cm', scale = 1)
-
 
 # Combine AvgClustS, PropLargC, OverlClust1VoxCutOff, IntsCluster, SDClustCount and SDClustSize
 # --> function unstable, sometimes need to re-run if crashes!
@@ -769,9 +779,10 @@ plot_grid(AvgClustS, PropLargC,
           OverlClust1VoxCutOff, IntsCluster, 
           labels = c("A", "B", "C", "D", "E", "F"), nrow = 3, align = "hv",
           axis = 'tblr')
-ggsave(filename = paste0(getwd(), '/FullStabilityCutOff_',contr,'.png'),
+ggsave(filename = 
+         paste0(getwd(), '/', contrSave[chosContr], '/FullStabilityCutOff_',contr,'.png'),
        plot = ggplot2::last_plot(),
-       width = 26, height = 32, units = 'cm', scale = 1)
+       width = 27, height = 32, units = 'cm', scale = 1)
 
 
 

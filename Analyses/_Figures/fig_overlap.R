@@ -36,7 +36,10 @@
 LocIntRes <- '../_IntData/'
 
 # Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces', 'Incentive')
+contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
+
+# Save locations depending on contrast
+contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo')
 
 # Load in libraries
 library(tidyverse)
@@ -79,7 +82,7 @@ for(s in 1:length(contrast)){
   
   # Read in data with overlap values and percentage of activated voxels
   Overlap <- 
-    readRDS(paste(LocIntRes, '/', contr, 'MaitraOverlap.rda',sep='')) %>% 
+    readRDS(paste(LocIntRes, contr, '/', 'MaitraOverlap.rda',sep='')) %>% 
     matrix(., ncol = 1) %>% 
     data.frame('overlap' = .,
                'sampleSize' = sampleSize) %>%
@@ -89,7 +92,7 @@ for(s in 1:length(contrast)){
   
   # Read in data with overlap values and percentage of activated voxels
   Correlation <- 
-    readRDS(paste(LocIntRes, '/', contr, 'MatrixCorrelation.rda',sep='')) %>% 
+    readRDS(paste(LocIntRes, contr, '/', 'MatrixCorrelation.rda',sep='')) %>% 
     matrix(., ncol = 1) %>% 
     data.frame('PearsonCorr' = .,
                'sampleSize' = sampleSize) %>%
@@ -110,35 +113,35 @@ SignLevels <- readRDS(paste(LocIntRes,'/ML/SignLevels.rda', sep = ''))
 
 ##
 ###############
-### Create plots
+### Create plots: preparation
 ###############
 ##
 
 # Variables for plotting
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
+subjBreak4P <- c(10, seq(50,700, by=50))
 
-# Put NaN of overlap values to zero
-Overlap$overlap[is.na(Overlap$overlap)] <- 0
-
-# Missing values (when N > 30 AND FACES): to NA instead of 0
-Overlap[Overlap$sampleSize >= 30 &
-          Overlap$contrast == 'Faces' & Overlap$overlap == 0,'overlap'] <- NA
-# Percentage missing values
-PercNA <- sum(is.na(Overlap$overlap))/dim(Overlap)[1] * 100
+# Missing data (and outlier) to NA: 
+#   missing data occurs when there was no activation in both images
+Overlap$overlap[Overlap$overlap %in% c(0,1)] <- NA
 
 # Make factor of contrasts
 Overlap$contrastL <- factor(Overlap$contrast, levels = contrast,
-                         labels = c('M > L', 
-                                    'A F > C'))
+          labels = c('cognitive', 
+                     'faces',
+                     'incentive',
+                     'stop go'))
 Correlation$contrastL <- factor(Correlation$contrast, levels = contrast,
-          labels = c('M > L', 
-                     'A F > C'))
+          labels = c('cognitive', 
+                     'faces',
+                     'incentive',
+                     'stop go'))
 
 # Set window 
 quartz.options(width=18,height=12)
 
 #################
-## Points for overlap with smoothed regression line: MATH > FACES
+## FIGURES OVERLAP: MATH > FACES ONLY
 #################
 
 # Create plot
@@ -165,12 +168,7 @@ overlapBoxPlot <- Overlap %>%
   theme_bw()
 overlapBoxPlot
 
-#################
-## Version for paper: MATH > LANGUAGE AND ALL CONTRASTS
-#################
-
-# Version with M > L
-subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
+# Using boxplots with better appearance
 overlapBoxPlotML <- Overlap %>%
   filter(contrast == 'ML') %>%
   ggplot(., aes(x=factor(sampleSize), y = overlap)) + 
@@ -193,7 +191,35 @@ overlapBoxPlotML <- Overlap %>%
         legend.position = 'bottom')
 overlapBoxPlotML
 
-# Different contrasts
+#################
+## NUMBERS: MATH > FACES
+#################
+
+# Median overlap at N = 200
+Overlap %>%
+  filter(contrast == 'ML') %>%
+  filter(sampleSize == 200) %>%
+  summarise(med = median(overlap))
+
+# Maximum overlap
+Overlap %>% as_tibble() %>%
+  filter(contrast == 'ML') %>%
+  group_by(sampleSize) %>%
+  summarise(AvOver = mean(overlap, na.rm = TRUE)) %>%
+  filter(AvOver == max(AvOver, na.rm = TRUE))
+
+# Median overlap at N = 30
+Overlap %>%
+  filter(contrast == 'ML') %>%
+  filter(sampleSize == 30) %>%
+  summarise(med = median(overlap, na.rm = TRUE))
+
+
+#################
+## FIGURES WITH ALL CONTRASTS
+#################
+
+# Different contrasts: boxplot
 overlapBoxPlot <- 
   ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
   geom_boxplot(aes(fill = contrastL),
@@ -217,29 +243,57 @@ overlapBoxPlot <-
         legend.position = 'bottom')
 overlapBoxPlot
 
-# Median overlap at N = 200
-Overlap %>%
-  filter(contrast == 'ML') %>%
-  filter(sampleSize == 200) %>%
-  summarise(med = median(overlap))
+# Split up into 4 panels
+overlapBoxPlot4P <-
+ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
+  geom_boxplot(aes(fill = contrastL),
+               outlier.size = .3, outlier.color = 'orange', width = 0.5,
+               position = position_dodge2(preserve = "total")) +
+  scale_x_discrete(breaks = subjBreak4P, name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~(omega))) +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
+  labs(title = 'Conditional test-retest reliability',
+       subtitle = 'FDR = 0.05') +
+  facet_wrap(~contrastL) +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        panel.spacing = unit(1, "lines"),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 9, face = 'plain'),
+        axis.ticks = element_line(size = 0.9),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'none')
+overlapBoxPlot4P
 
-# Maximum overlap
-Overlap %>% as_tibble() %>%
-  filter(contrast == 'ML') %>%
-  group_by(sampleSize) %>%
-  summarise(AvOver = mean(overlap)) %>%
-  filter(AvOver == max(AvOver))
-
-# Median overlap at N = 30
-Overlap %>%
-  filter(contrast == 'ML') %>%
-  filter(sampleSize == 30) %>%
-  summarise(med = median(overlap))
-
+# Different contrasts: using a smoother
+ggplot(Overlap, aes(x=sampleSize, y = overlap)) + 
+geom_smooth(aes(colour = contrastL), method = 'loess') +
+scale_x_continuous(name="Sample size") +
+scale_y_continuous(name=expression(Overlap~~(omega))) +
+scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
+labs(title = 'Conditional test-retest reliability',
+     subtitle = 'FDR = 0.05') +
+theme_classic() +
+theme(panel.grid.major = element_line(size = 0.8),
+      panel.grid.minor = element_line(size = 0.8),
+      axis.title.x = element_text(face = 'plain'),
+      axis.title.y = element_text(face = 'plain'),
+      axis.text = element_text(size = 11, face = 'plain'),
+      axis.ticks = element_line(size = 1.3),
+      axis.ticks.length=unit(.20, "cm"),
+      axis.line = element_line(size = .75),
+      title = element_text(face = 'plain'),
+      plot.title = element_text(hjust = 0.5),
+      legend.position = 'bottom')
 
 
 #################
-## Points for overlap and ADAPTIVE THRESHOLDING 
+## Points for overlap and ADAPTIVE THRESHOLDING: MATH > FACES ONLY
 #################
 
 # Prepare the data frame for plotting
@@ -327,12 +381,8 @@ AdaptOverlap
 
 
 #################
-## Points for Pearson correlation
+## PLOTS WITH PEARSON CORRELATION
 #################
-
-## Prepare matrix
-# Correlation <- data.frame('PearsonCorr' = matrix(MatrixCorrelation,ncol=1), 
-#                          'sampleSize' = sampleSize)
 
 # MATH > LANGUAGE
 corrPlot <- 
@@ -362,7 +412,7 @@ corrBoxPlot
 
 # Version for OHBM 2018: MATH > LANGUAGE
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
-corrBoxPlot <- 
+corrBoxPlotOHBM <- 
   Correlation %>%
   filter(contrast == 'ML') %>%
   ggplot(., aes(x=factor(sampleSize), y = PearsonCorr)) + 
@@ -382,9 +432,9 @@ corrBoxPlot <-
         title = element_text(face = 'plain'),
         plot.title = element_text(hjust = 0.5),
         legend.position = 'bottom')
-corrBoxPlot
+corrBoxPlotOHBM
 
-# Version with all contrasts
+# Version with all contrasts in one panel
 corrBoxPlotC <- 
   ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
   geom_boxplot(aes(fill = contrastL),
@@ -407,31 +457,65 @@ corrBoxPlotC <-
         legend.position = 'bottom')
 corrBoxPlotC
 
+# Version with all contrasts in 4 panels
+corrBoxPlotC4P <- 
+  ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
+  geom_boxplot(aes(fill = contrastL),
+               outlier.size = .3, outlier.colour = 'orange', width = 0.5,
+               position = position_dodge2(preserve = "total")) +
+  scale_x_discrete(breaks = subjBreak4P, name="Sample size") +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
+  scale_y_continuous(name=expression(Pearson~ product~-~moment~ correlation~ coefficient~~(rho))) +
+  facet_wrap(~contrastL) +
+  theme_classic() +
+  labs(title = 'Unconditional test-retest reliability') +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        panel.spacing = unit(1, "lines"),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 9, face = 'plain'),
+        axis.ticks = element_line(size = 0.9),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'none')
+corrBoxPlotC4P
+
+#################
+## NUMBERS OF PEARSON CORRELATION: MATH > FACES ONLY
+#################
 
 # Maximum value
 Correlation %>%
-  filter(PearsonCorr == max(PearsonCorr))
+  filter(contrast == 'ML') %>%
+  filter(PearsonCorr == max(PearsonCorr, na.rm = TRUE))
 
 # Maximum median value
 Correlation %>% as_tibble() %>%
+  filter(contrast == 'ML') %>%
   group_by(sampleSize) %>%
   summarise(MedPearson = round(median(PearsonCorr),3)) %>%
   filter(MedPearson == max(MedPearson))
 
 # At N = 700?
 Correlation %>% as_tibble() %>%
+  filter(contrast == 'ML') %>%
   group_by(sampleSize) %>%
   summarise(MedPearson = median(PearsonCorr)) %>%
   filter(sampleSize == 700)
 
 # When do we have a median rho of 0.80?
 Correlation %>% as_tibble() %>%
+  filter(contrast == 'ML') %>%
   group_by(sampleSize) %>%
   summarise(MedPearson = median(PearsonCorr)) %>%
   filter(MedPearson >= 0.80)
 
 # Median rho at N = 30
 Correlation %>% as_tibble() %>%
+  filter(contrast == 'ML') %>%
   group_by(sampleSize) %>%
   summarise(MedPearson = median(PearsonCorr)) %>%
   filter(sampleSize == 30)
@@ -443,14 +527,14 @@ Correlation %>% as_tibble() %>%
 ##
 
 # Overlap plot: points
-ggsave(filename = paste0(getwd(), '/overlapPlot.png'),
+ggsave(filename = paste0(getwd(), '/1_cognitive/overlapPlot.png'),
        plot = overlapPlot,
        width = 20, height = 14, units = 'cm', scale = 0.9)
 
 # Overlap plot: boxplots
-ggsave(filename = paste0(getwd(), '/overlapBoxPlot.png'),
-       plot = overlapBoxPlot,
-       width = 20, height = 14, units = 'cm', scale = 0.9)
+ggsave(filename = paste0(getwd(), '/overlapBoxPlot_contrasts.png'),
+       plot = overlapBoxPlot4P,
+       width = 20, height = 14, units = 'cm', scale = 1.2)
 
 # Adaptive overlap plot
 ggsave(filename = paste0(getwd(), '/AdaptOverlap.png'),
@@ -458,14 +542,14 @@ ggsave(filename = paste0(getwd(), '/AdaptOverlap.png'),
        width = 20, height = 14, units = 'cm', scale = 0.9)
 
 # Pearson product moment correlation coefficient
-ggsave(filename = paste0(getwd(), '/corrPlot.png'),
+ggsave(filename = paste0(getwd(), '/1_cognitive/corrPlot_ML.png'),
        plot = corrPlot,
        width = 20, height = 14, units = 'cm', scale = 0.9)
 
 # Correlation: boxplot
-ggsave(filename = paste0(getwd(), '/corrBoxPlot.png'),
-       plot = corrBoxPlot,
-       width = 20, height = 14, units = 'cm', scale = 0.9)
+ggsave(filename = paste0(getwd(), '/corrBoxPlot_contrasts.png'),
+       plot = corrBoxPlotC4P,
+       width = 20, height = 14, units = 'cm', scale = 1.2)
 
 
 
@@ -480,8 +564,11 @@ ggsave(filename = paste0(getwd(), '/corrBoxPlot.png'),
 # These are the extra FDR levels considered:
 FDRlevels <- c(0.001, 0.01, 0.1, 0.2)
 
+
+
 # Read the data in and add to a new data frame
-OverlapFDR <- data.frame('overlap' = matrix(MatrixOverlap,ncol=1),
+OverlapFDR <- data.frame('overlap' = matrix(
+      Overlap$overlap[Overlap$contrast == 'ML'] ,ncol=1),
                          'sampleSize' = sampleSize,
                          'FDR' = 0.05) %>% as_tibble()
 
@@ -491,7 +578,7 @@ for(i in 1:length(FDRlevels)){
   IDFDR <- sub(pattern = '.', replacement = '_', x = FDRlevels[i], fixed = TRUE)
   
   # Read in the data
-  MatrixOverlapFDRtmp <- readRDS(paste(LocIntRes,'/MaitraOverlapFDR',IDFDR,'.rda',sep=''))
+  MatrixOverlapFDRtmp <- readRDS(paste(LocIntRes,'ML/MaitraOverlapFDR',IDFDR,'.rda',sep=''))
   
   # Convert to data frame and bind to final data frame
   OverlapFDR <- bind_rows(
@@ -572,17 +659,18 @@ ggsave(filename = paste0(getwd(), '/overlapBoxFDRs.png'),
 #################
 ## ggplot: plot the amount of observations/sample size
 #################
-# how many observations are there?
-observations <- apply(MatrixOverlap,c(1),function(x){length(na.omit(x))})
-# put in data frame
-obs <- data.frame('count' = observations, 'size' = seq(10,700,by=10))
-ggplot(obs, aes(x=factor(size), y=count))+
-  geom_bar(stat='identity', colour='#1f78b4',fill='#a6cee3') +
-  scale_x_discrete(breaks=seq(0,700,by=50), name="sample size") +
-  ggtitle('Incomplete data: amount of comparissons in each sample size.') +
-  theme(plot.title = element_text(lineheight=.2, face="bold")) + 
-  scale_y_continuous(name='Amount of data points')+
-  theme_bw()
+
+Overlap %>%
+  group_by(sampleSize, contrastL) %>%
+  summarise(count = sum(!is.na(overlap))) %>%
+  ggplot(., aes(x=factor(sampleSize), y=count))+
+    geom_bar(stat='identity', colour='#1f78b4',fill='#a6cee3') +
+    facet_wrap(~contrastL) +
+    scale_x_discrete(breaks=seq(0,700,by=50), name="sample size") +
+    ggtitle('Incomplete data: number of comparissons in each sample size.') +
+    theme(plot.title = element_text(lineheight=.2, face="bold")) + 
+    scale_y_continuous(name='Number of data points')+
+    theme_bw()
 
 
 #################
@@ -591,14 +679,14 @@ ggplot(obs, aes(x=factor(size), y=count))+
 
 # Data frame with overlap and percentage
 perc <- matrix(PercAct,ncol=1)
-OverPerc <- data.frame('Value' = c(Overlap$overlap,perc),
+OverPerc <- data.frame('Value' = c(Overlap$overlap[Overlap$contrast == 'ML'],perc),
                        'Size' = rep(sampleSize,2), 
                        'Type' = c(rep('Overlap',3500),rep('Percentage',3500)))
 OverPerc$Type <- as.factor(OverPerc$Type)
 OverPerc$Value <- as.numeric(OverPerc$Value)
 
 # Correlation
-corr <- round(cor(perc, Overlap$overlap, use = "complete.obs"),2)
+corr <- round(cor(perc, Overlap$overlap[Overlap$contrast == 'ML'], use = "complete.obs"),2)
 ggplot(OverPerc, aes(x=factor(Size),y=Value)) + 
   geom_point(aes(colour=Type),position='identity',size=1.5) +
   scale_x_discrete(breaks=subjBreak, name="Sample size") +

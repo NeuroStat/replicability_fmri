@@ -36,6 +36,9 @@ LocIntRes <- '../_IntData/'
 # Possible contrasts: default = MATH > LANGUAGE
 contrast <- c('ML', 'Faces','Incentive', 'StopGo')
 
+# Save locations depending on contrast
+contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo')
+
 # Load in libraries
 library(tidyverse)
 library(magrittr)
@@ -167,7 +170,7 @@ EMParam %>% filter(threshold == 'fdr' & contrast == 'ML') %>%
     ggtitle('Number of iterations needed in the two-step EM algorithm',
             subtitle = 'Split according to first run or final estimation.') +
     theme_classic()
-ggsave(filename = paste(getwd(), '/EM_Checks/iterations_EM.png', sep = ''), plot = last_plot())
+ggsave(filename = paste(getwd(), '/1_cognitive/EM_Checks/iterations_EM.png', sep = ''), plot = last_plot())
 
 # Difference in coefficients
 # Values of first run
@@ -195,7 +198,7 @@ for(r in 1:length(plotRuns)){
     facet_wrap( ~ run) +
     ggtitle(paste0('Differences in parameter estimates between first and second attempt
                    in the two step EM algorithm'))
-  ggsave(filename = paste(getwd(), '/EM_Checks/DiffEM_part', r, '.png', sep = ''), plot = ToPlot)
+  ggsave(filename = paste(getwd(), '/1_cognitive/EM_Checks/DiffEM_part', r, '.png', sep = ''), plot = ToPlot)
 }
 
 # Seems ok! Go with final estimates.
@@ -294,7 +297,7 @@ KappaPlot <- ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) +
 KappaPlot
 
 # Save the plot
-ggsave(filename = paste0(getwd(), '/Kappa_FDR_05.png'),
+ggsave(filename = paste0(getwd(), '/1_cognitive/Kappa_FDR_05.png'),
        plot = KappaPlot,
        width = 20, height = 14, units = 'cm', scale = 0.9)
 
@@ -314,7 +317,7 @@ Kappa %>%
 
 ##
 ###############
-### Calculate Cohen's Kappa: FDR + MATH and FACES contrast
+### Calculate Cohen's Kappa: FDR + all contrasts
 ###############
 ##
 
@@ -343,7 +346,7 @@ KappaC$contrastL <- factor(KappaC$contrast, levels = contrast,
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 KappaPlotC <- ggplot(KappaC, aes(x=factor(SampleSize), y = kappa)) + 
   geom_boxplot(outlier.size = .2, outlier.color = 'orange', size = 0.25,
-               aes(fill = contrastL)) +
+               aes(fill = contrastL), width = 1) +
   scale_x_discrete(breaks = subjBreak, name = "Sample size") +
   scale_y_continuous(name=expression(Coherence~~(kappa)), breaks = seq(0,1,0.2)) +
   scale_fill_brewer('task ', type = 'qual', palette = 2) +
@@ -359,10 +362,10 @@ KappaPlotC <- ggplot(KappaC, aes(x=factor(SampleSize), y = kappa)) +
         axis.ticks.length=unit(.20, "cm"),
         axis.line = element_line(size = .75),
         title = element_text(face = 'plain'),
-        legend.text = element_text(size = 7, face = 'plain'),
-        legend.title = element_text(size = 7, face = 'plain'),
+        legend.text = element_text(size = 9, face = 'plain'),
+        legend.title = element_text(size = 10, face = 'plain'),
         plot.title = element_text(hjust = 0.5),
-        legend.position = 'right')
+        legend.position = 'bottom')
 KappaPlotC
 
 # Save the plot
