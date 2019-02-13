@@ -144,25 +144,6 @@ saveRDS(MatrixCorrelation,
     file = paste(SaveLoc, '/', contr, '/MatrixCorrelation.rda',sep=''))
 
 
-(i - 1)*70*2 + ((j - 1) * 2) + 1
-
-fileCon <- paste(getwd(),"/runJobs.txt",sep="")
-# Check data
-for(i in 1:NRUNS){
-  # For loop over all steps
-  for(j in 1:NSTEP){
-    ttestG1 <- try(readNIfTI(paste(dat,'Run_',i,'/Step_',j,'/Group1/thresh_zstat1.nii',sep=''))[,,],silent=TRUE)
-    if(class(ttestG1) == 'try-error'){
-      cat(paste((i - 1)*70*2 + ((j - 1) * 2) + 1, ' \n', sep = ''), file=fileCon, append = TRUE)
-    }
-    ttestG2 <- try(readNIfTI(paste(dat,'Run_',i,'/Step_',j,'/Group2/thresh_zstat1.nii',sep=''))[,,],silent=TRUE)
-    if(class(ttestG2) == 'try-error'){
-      cat(paste((i - 1)*70*2 + ((j - 1) * 2) + 2, ' \n', sep = ''), file=fileCon, append = TRUE)
-    }
-  }
-}
-
-
 ##
 ###############
 ### Create plots

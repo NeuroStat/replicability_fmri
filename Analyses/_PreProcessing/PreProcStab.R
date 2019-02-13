@@ -162,10 +162,6 @@ for(i in 1:NRUNS){
   }
   # For loop over all steps
   for(j in 1:NSTEP){
-    #if(i == 42 && j == 66) next # 42-66-1
-    #if(i == 44 && j == 68) next # 42-66-1
-    #if(i == 48 && j == 62) next # 48-62-2
-    #if(i == 48 && j == 63) next # 48-62-2
     #########################
     ##### CLUSTER SIZES #####
     #########################
