@@ -534,7 +534,7 @@ ggsave(filename = paste0(getwd(), '/1_cognitive/overlapPlot.png'),
 # Overlap plot: boxplots
 ggsave(filename = paste0(getwd(), '/overlapBoxPlot_contrasts.png'),
        plot = overlapBoxPlot4P,
-       width = 20, height = 14, units = 'cm', scale = 1.2)
+       width = 20, height = 18, units = 'cm', scale = 1.2)
 
 # Adaptive overlap plot
 ggsave(filename = paste0(getwd(), '/AdaptOverlap.png'),
@@ -549,7 +549,7 @@ ggsave(filename = paste0(getwd(), '/1_cognitive/corrPlot_ML.png'),
 # Correlation: boxplot
 ggsave(filename = paste0(getwd(), '/corrBoxPlot_contrasts.png'),
        plot = corrBoxPlotC4P,
-       width = 20, height = 14, units = 'cm', scale = 1.2)
+       width = 20, height = 18, units = 'cm', scale = 1.2)
 
 
 
