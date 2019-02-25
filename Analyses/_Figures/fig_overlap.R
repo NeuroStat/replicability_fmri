@@ -129,13 +129,13 @@ Overlap$overlap[Overlap$overlap %in% c(0,1)] <- NA
 Overlap$contrastL <- factor(Overlap$contrast, levels = contrast,
           labels = c('cognitive', 
                      'faces',
-                     'incentive',
-                     'stop go'))
+                     'MID',
+                     'Stop and Signal'))
 Correlation$contrastL <- factor(Correlation$contrast, levels = contrast,
           labels = c('cognitive', 
                      'faces',
-                     'incentive',
-                     'stop go'))
+                     'MID',
+                     'Stop and Signal'))
 
 # Set window 
 quartz.options(width=18,height=12)

@@ -339,8 +339,8 @@ KappaC <- EMParam %>% filter(final == TRUE) %>%
 KappaC$contrastL <- factor(KappaC$contrast, levels = contrast,
                           labels = c('cogntive', 
                                      'faces',
-                                     'incentive',
-                                     'stop-go'))
+                                     'MID',
+                                     'Stop and Signal'))
 
 # Plot for paper (HBM revision)
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
