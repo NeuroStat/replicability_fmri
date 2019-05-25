@@ -141,81 +141,6 @@ Correlation$contrastL <- factor(Correlation$contrast, levels = contrast,
 quartz.options(width=18,height=12)
 
 #################
-## FIGURES OVERLAP: MATH > FACES ONLY
-#################
-
-# Create plot
-overlapPlot <- Overlap %>%
-  filter(contrast == 'ML') %>%
-  ggplot(., aes(x = sampleSize, y = overlap)) + 
-  geom_point(size = 0.6) +
-  geom_smooth(aes(x = sampleSize, y = overlap),
-          method = 'loess', 
-          formula = y ~ x,
-          colour = '#fc8d59') +
-  scale_x_continuous(breaks=subjBreak, name="Sample size") +
-  scale_y_continuous(name='Overlap') +
-  theme_bw()
-overlapPlot
-
-# Or using a boxplot
-overlapBoxPlot <- Overlap %>%
-  filter(contrast == 'ML') %>%
-  ggplot(., aes(x=factor(sampleSize), y = overlap)) + 
-  geom_boxplot(outlier.size = .7) +
-  scale_x_discrete(breaks = subjBreak, name="Sample size") +
-  scale_y_continuous(name=expression(Overlap~~ (omega))) +
-  theme_bw()
-overlapBoxPlot
-
-# Using boxplots with better appearance
-overlapBoxPlotML <- Overlap %>%
-  filter(contrast == 'ML') %>%
-  ggplot(., aes(x=factor(sampleSize), y = overlap)) + 
-  geom_boxplot(outlier.size = .7, outlier.color = 'orange') +
-  scale_x_discrete(breaks = subjBreak, name="Sample size") +
-  scale_y_continuous(name=expression(Overlap~~(omega))) +
-  labs(title = 'Conditional test-retest reliability',
-       subtitle = 'FDR = 0.05') +
-  theme_classic() +
-  theme(panel.grid.major = element_line(size = 0.8),
-        panel.grid.minor = element_line(size = 0.8),
-        axis.title.x = element_text(face = 'plain'),
-        axis.title.y = element_text(face = 'plain'),
-        axis.text = element_text(size = 11, face = 'plain'),
-        axis.ticks = element_line(size = 1.3),
-        axis.ticks.length=unit(.20, "cm"),
-        axis.line = element_line(size = .75),
-        title = element_text(face = 'plain'),
-        plot.title = element_text(hjust = 0.5),
-        legend.position = 'bottom')
-overlapBoxPlotML
-
-#################
-## NUMBERS: MATH > FACES
-#################
-
-# Median overlap at N = 200
-Overlap %>%
-  filter(contrast == 'ML') %>%
-  filter(sampleSize == 200) %>%
-  summarise(med = median(overlap))
-
-# Maximum overlap
-Overlap %>% as_tibble() %>%
-  filter(contrast == 'ML') %>%
-  group_by(sampleSize) %>%
-  summarise(AvOver = mean(overlap, na.rm = TRUE)) %>%
-  filter(AvOver == max(AvOver, na.rm = TRUE))
-
-# Median overlap at N = 30
-Overlap %>%
-  filter(contrast == 'ML') %>%
-  filter(sampleSize == 30) %>%
-  summarise(med = median(overlap, na.rm = TRUE))
-
-
-#################
 ## FIGURES WITH ALL CONTRASTS
 #################
 
@@ -290,6 +215,148 @@ theme(panel.grid.major = element_line(size = 0.8),
       title = element_text(face = 'plain'),
       plot.title = element_text(hjust = 0.5),
       legend.position = 'bottom')
+
+# Plot with median +/- 1e and 3e quantile
+overlapQPlot4P <- 
+  Overlap %>%
+  group_by(sampleSize, contrastL) %>%
+  summarise(avgOv = mean(overlap, na.rm = TRUE),
+            medOv = median(overlap, na.rm = TRUE),
+            Q1 = quantile(overlap, probs = 0.25, na.rm = TRUE),
+            Q3 = quantile(overlap, probs = 0.75, na.rm = TRUE)) %>%
+  ungroup() %>% 
+#  mutate(checkQ1 = avgOv - Q1) %>%
+#  mutate(checkQ2 = Q3 - avgOv) %>% View()
+  ggplot(., aes(x = sampleSize, y = medOv)) +
+  geom_line(aes(colour = contrastL), size = 0.9) +
+  geom_crossbar(aes(x = sampleSize, ymin = Q1, ymax = Q3,
+                    fill = contrastL),
+                colour = 'black', 
+                size = 0.2,
+                alpha = 0.5) +
+  scale_x_continuous(name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~(omega))) +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
+  scale_colour_brewer('contrast ', type = 'qual', palette = 6) +
+  labs(title = 'Conditional test-retest reliability',
+       subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 13, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.title = element_text(size = 12, face = 'bold'),
+        legend.text = element_text(size = 11, face = 'bold'),
+        legend.position = 'bottom')
+overlapQPlot4P
+
+
+#################
+## FIGURES OVERLAP: MATH > FACES ONLY
+#################
+
+# Create plot
+overlapPlot <- Overlap %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x = sampleSize, y = overlap)) + 
+  geom_point(size = 0.6) +
+  geom_smooth(aes(x = sampleSize, y = overlap),
+              method = 'loess', 
+              formula = y ~ x,
+              colour = '#fc8d59') +
+  scale_x_continuous(breaks=subjBreak, name="Sample size") +
+  scale_y_continuous(name='Overlap') +
+  theme_bw()
+overlapPlot
+
+# Or using a boxplot
+overlapBoxPlot <- Overlap %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x=factor(sampleSize), y = overlap)) + 
+  geom_boxplot(outlier.size = .7) +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~ (omega))) +
+  theme_bw()
+overlapBoxPlot
+
+# Using boxplots with better appearance
+overlapBoxPlotML <- Overlap %>%
+  filter(contrast == 'ML') %>%
+  ggplot(., aes(x=factor(sampleSize), y = overlap)) + 
+  geom_boxplot(outlier.size = .7, outlier.color = 'orange') +
+  scale_x_discrete(breaks = subjBreak, name="Sample size") +
+  scale_y_continuous(name=expression(Overlap~~(omega))) +
+  labs(title = 'Conditional test-retest reliability',
+       subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 11, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.position = 'bottom')
+overlapBoxPlotML
+
+
+#################
+## NUMBERS: MATH > FACES
+#################
+
+# Median overlap at N = 200
+Overlap %>%
+  filter(contrast == 'ML') %>%
+  filter(sampleSize == 200) %>%
+  summarise(med = median(overlap))
+
+# Maximum overlap
+Overlap %>% as_tibble() %>%
+  filter(contrast == 'ML') %>%
+  group_by(sampleSize) %>%
+  summarise(AvOver = mean(overlap, na.rm = TRUE)) %>%
+  filter(AvOver == max(AvOver, na.rm = TRUE))
+
+# Median overlap at N = 30
+Overlap %>%
+  filter(contrast == 'ML') %>%
+  filter(sampleSize == 30) %>%
+  summarise(med = median(overlap, na.rm = TRUE))
+
+
+#################
+## NUMBERS: ALL CONTRASTS
+#################
+
+# Median overlap at N = 200
+Overlap %>%
+  group_by(sampleSize, contrast) %>%
+  summarise(medOv = median(overlap, na.rm = TRUE)) %>%
+  filter(sampleSize == 200)
+
+# Maximum overlap 
+Overlap %>%
+  group_by(sampleSize, contrast) %>%
+  summarise(medOv = median(overlap, na.rm = TRUE)) %>%
+  ungroup() %>%
+  group_by(contrast) %>%
+  filter(medOv == max(medOv, na.rm = TRUE))
+
+# At N = 30
+Overlap %>%
+  group_by(sampleSize, contrast) %>%
+  summarise(medOv = median(overlap, na.rm = TRUE)) %>%
+  filter(sampleSize == 30)
+
 
 
 #################
@@ -483,6 +550,43 @@ corrBoxPlotC4P <-
         legend.position = 'none')
 corrBoxPlotC4P
 
+# Plot with median +/- 1e and 3e quantile
+corrQPlot4P <- 
+  Correlation %>%
+  group_by(sampleSize, contrastL) %>%
+  summarise(avgCor = mean(PearsonCorr, na.rm = TRUE),
+            medCor = median(PearsonCorr, na.rm = TRUE),
+            Q1 = quantile(PearsonCorr, probs = 0.25, na.rm = TRUE),
+            Q3 = quantile(PearsonCorr, probs = 0.75, na.rm = TRUE)) %>%
+  ungroup() %>% 
+  ggplot(., aes(x = sampleSize, y = medCor)) +
+  geom_line(aes(colour = contrastL), size = 0.9) +
+  geom_crossbar(aes(x = sampleSize, ymin = Q1, ymax = Q3,
+                    fill = contrastL),
+                colour = 'black', 
+                size = 0.2,
+                alpha = 0.5) +
+  scale_x_continuous(name="Sample size") +
+  scale_y_continuous(name=expression(Pearson~ product~-~moment~ correlation~ coefficient~~(rho))) +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
+  scale_colour_brewer('contrast ', type = 'qual', palette = 6) +
+  labs(title = 'Unconditional test-retest reliability') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 13, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.title = element_text(size = 12, face = 'bold'),
+        legend.text = element_text(size = 11, face = 'bold'),
+        legend.position = 'bottom')
+corrQPlot4P
+
 #################
 ## NUMBERS OF PEARSON CORRELATION: MATH > FACES ONLY
 #################
@@ -520,6 +624,26 @@ Correlation %>% as_tibble() %>%
   summarise(MedPearson = median(PearsonCorr)) %>%
   filter(sampleSize == 30)
 
+
+#################
+## NUMBERS OF PEARSON CORRELATION: ALL CONTRASTS
+#################
+
+# Some median values over all contrasts
+Correlation %>%
+  group_by(sampleSize, contrast) %>%
+  summarise(MedPearson = median(PearsonCorr, na.rm = TRUE)) %>%
+  filter(sampleSize %in% c(30, 50, 70, 80, 700))
+
+# Maximum median correlation
+Correlation %>%
+  group_by(sampleSize, contrast) %>%
+  summarise(MedPearson = median(PearsonCorr, na.rm = TRUE)) %>%
+  ungroup() %>%
+  group_by(contrast) %>%
+  filter(MedPearson == max(MedPearson))
+
+
 ##
 ###############
 ### Save plots
@@ -536,6 +660,11 @@ ggsave(filename = paste0(getwd(), '/overlapBoxPlot_contrasts.png'),
        plot = overlapBoxPlot4P,
        width = 20, height = 18, units = 'cm', scale = 1.2)
 
+# Overlap plot: quantile plots
+ggsave(filename = paste0(getwd(), '/overlapQuantPlot.png'),
+       plot = overlapQPlot4P,
+       width = 24, height = 22, units = 'cm', scale = 1)
+
 # Adaptive overlap plot
 ggsave(filename = paste0(getwd(), '/AdaptOverlap.png'),
        plot = AdaptOverlap,
@@ -550,6 +679,11 @@ ggsave(filename = paste0(getwd(), '/1_cognitive/corrPlot_ML.png'),
 ggsave(filename = paste0(getwd(), '/corrBoxPlot_contrasts.png'),
        plot = corrBoxPlotC4P,
        width = 20, height = 18, units = 'cm', scale = 1.2)
+
+# Correlation: quantile plots
+ggsave(filename = paste0(getwd(), '/corrQuantPlot.png'),
+       plot = corrQPlot4P,
+       width = 24, height = 22, units = 'cm', scale = 1)
 
 
 

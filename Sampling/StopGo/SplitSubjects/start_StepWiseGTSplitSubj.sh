@@ -2,22 +2,29 @@
 #
 #
 #PBS -N FreOveSG
-#PBS -o output/output.file
-#PBS -e error/error.file
+#PBS -o output/
+#PBS -e error/
 #PBS -m a
 #PBS -l walltime=04:25:00
 #
 
 #----------------------------------------------------#
 # SWAP TO CLUSTER DELCATTY
-module swap cluster/delcatty
+# module swap cluster/delcatty
+
+# SWAP TO CLUSTER GOLETT
+module swap cluster/golett
 #----------------------------------------------------#
 
-
-module load R/3.1.0-ictce-5.5.0
-module load FSL/5.0.6-ictce-5.5.0
-module load fmri/1.5-0-ictce-5.5.0-R-3.1.0
+# New modules
+module load FSL/5.0.9-intel-2016a-Mesa-11.2.1
+module load R/3.2.3-intel-2016a
 . $FSLDIR/etc/fslconf/fsl.sh
+
+#module load R/3.1.0-ictce-5.5.0
+#module load FSL/5.0.6-ictce-5.5.0
+#module load fmri/1.5-0-ictce-5.5.0-R-3.1.0
+
 
 #----------------------------------------------------#
 # CHANGE YOUR VSC NUMBER HERE AND GOD WILL DO THE REST

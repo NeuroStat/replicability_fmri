@@ -296,12 +296,6 @@ KappaPlot <- ggplot(Kappa, aes(x=factor(SampleSize), y = kappa)) +
         legend.position = 'bottom')
 KappaPlot
 
-# Save the plot
-ggsave(filename = paste0(getwd(), '/1_cognitive/Kappa_FDR_05.png'),
-       plot = KappaPlot,
-       width = 20, height = 14, units = 'cm', scale = 0.9)
-
-
 # When is median K >= 0.80?
 Kappa %>%
   group_by(SampleSize) %>%
@@ -342,7 +336,7 @@ KappaC$contrastL <- factor(KappaC$contrast, levels = contrast,
                                      'MID',
                                      'Stop and Signal'))
 
-# Plot for paper (HBM revision)
+# Plot with boxplots for all contrasts
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 KappaPlotC <- ggplot(KappaC, aes(x=factor(SampleSize), y = kappa)) + 
   geom_boxplot(outlier.size = .2, outlier.color = 'orange', size = 0.25,
@@ -368,10 +362,88 @@ KappaPlotC <- ggplot(KappaC, aes(x=factor(SampleSize), y = kappa)) +
         legend.position = 'bottom')
 KappaPlotC
 
-# Save the plot
+# Plot with median +/- 1e and 3e quantile
+cohQPlot4P <- 
+  KappaC %>%
+  group_by(SampleSize, contrastL) %>%
+  summarise(avgCoh = mean(kappa, na.rm = TRUE),
+            medCoh = median(kappa, na.rm = TRUE),
+            Q1 = quantile(kappa, probs = 0.25, na.rm = TRUE),
+            Q3 = quantile(kappa, probs = 0.75, na.rm = TRUE)) %>%
+  ungroup() %>% 
+  ggplot(., aes(x = SampleSize, y = medCoh)) +
+  geom_line(aes(colour = contrastL), size = 0.9) +
+  geom_crossbar(aes(x = SampleSize, ymin = Q1, ymax = Q3,
+                    fill = contrastL),
+                colour = 'black', 
+                size = 0.2,
+                alpha = 0.5) +
+  scale_x_continuous(name="Sample size") +
+  scale_y_continuous(name=expression(Coherence~~(kappa))) +
+  scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
+  scale_colour_brewer('contrast ', type = 'qual', palette = 6) +
+  labs(title = 'Concordance/coherence',
+       subtitle = 'FDR = 0.05') +
+  theme_classic() +
+  theme(panel.grid.major = element_line(size = 0.8),
+        panel.grid.minor = element_line(size = 0.8),
+        axis.title.x = element_text(face = 'plain'),
+        axis.title.y = element_text(face = 'plain'),
+        axis.text = element_text(size = 13, face = 'plain'),
+        axis.ticks = element_line(size = 1.3),
+        axis.ticks.length=unit(.20, "cm"),
+        axis.line = element_line(size = .75),
+        title = element_text(face = 'plain'),
+        plot.title = element_text(hjust = 0.5),
+        legend.title = element_text(size = 12, face = 'bold'),
+        legend.text = element_text(size = 11, face = 'bold'),
+        legend.position = 'bottom')
+cohQPlot4P
+
+##### Some numbers #####
+# When is median kappa >= 80?
+KappaC %>%
+  group_by(SampleSize, contrast) %>%
+  summarise(medCoh = median(kappa, na.rm = TRUE)) %>% 
+  filter(medCoh >= 0.80)
+
+# Maximum median kappa for MID and StopGo?
+KappaC %>%
+  group_by(SampleSize, contrast) %>%
+  summarise(medCoh = median(kappa, na.rm = TRUE)) %>% 
+  ungroup() %>% group_by(contrast) %>%
+  filter(medCoh == max(medCoh))
+
+# Values at N = 30
+KappaC %>%
+  group_by(SampleSize, contrast) %>%
+  summarise(medCoh = median(kappa, na.rm = TRUE)) %>% 
+  ungroup() %>% group_by(contrast) %>%
+  filter(SampleSize == 30)
+
+
+##
+###############
+### Save plots
+###############
+##
+
+# Only the cognitive, FDR plot
+ggsave(filename = paste0(getwd(), '/1_cognitive/Kappa_FDR_05.png'),
+       plot = KappaPlot,
+       width = 20, height = 14, units = 'cm', scale = 0.9)
+
+# All contrasts in boxplots
 ggsave(filename = paste0(getwd(), '/Kappa_FDR_05_contrasts.png'),
        plot = KappaPlotC,
        width = 20, height = 14, units = 'cm', scale = 0.9)
+
+
+# Using the quantiles
+ggsave(filename = paste0(getwd(), '/Kappa_FDR_05_quantiles.png'),
+       plot = cohQPlot4P,
+       width = 24, height = 22, units = 'cm', scale = 1)
+
 
 
 

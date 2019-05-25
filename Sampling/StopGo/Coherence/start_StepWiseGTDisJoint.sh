@@ -2,8 +2,8 @@
 #
 #
 #PBS -N FreCohInc
-#PBS -o output/output.file
-#PBS -e error/error.file
+#PBS -o output/
+#PBS -e error/
 #PBS -m a
 #PBS -l walltime=04:00:00
 #

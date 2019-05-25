@@ -151,6 +151,7 @@ EM_params <- data.frame() %>% as_tibble()
 for(k in 1:NRUNS){
   print(paste0('At run ', k))
   for(i in 1:length(steps)){
+    print(i)
     # Number of disjoint sets in this sample size
     numDS <- floor(DATTOTAL/steps[i])
     

@@ -38,7 +38,7 @@
 LocIntRes <- '../_IntData/'
 
 # Chosen contrast
-chosContr <- 3
+chosContr <- 4
 
 # Possible contrasts: default = MATH > LANGUAGE
 contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
