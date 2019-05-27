@@ -616,8 +616,6 @@ OverlClust1VoxCutOff <- numUniqClust %>%
         legend.position = 'bottom')
 OverlClust1VoxCutOff
 
-
-  
 ###############################################
 ##### PROPORTION OVERLAP BETWEEN CLUSTERS #####
 ###############################################
@@ -694,7 +692,7 @@ numUniqClust %>%
   filter(cluster %in% c('AvUniClus', 'AvOverlCluster', 'AvTotClus')) %>%
   # Summarise over sample sizes
   group_by(SampleSize, cluster) %>%
-  summarise(MedClust = median(count)) %>% 
+  summarise(MedClust = median(count, na.rm = TRUE)) %>% 
   # N = 30
   filter(SampleSize == 30)
 
@@ -706,7 +704,7 @@ numPercClust %>%
   # Filter out the average unique, overlapping and total number of clusters
   filter(cluster %in% c('UniPercClust', 'OverlPercClust', 'AvTotClus')) %>%
   group_by(SampleSize, cluster) %>%
-  summarise(MedClust = median(count)) %>% 
+  summarise(MedClust = median(count, na.rm = TRUE)) %>% 
   # N = 30
   filter(SampleSize == 30)
 
@@ -718,6 +716,30 @@ propOverVox %>%
   # Summarise
   group_by(SampleSize) %>%
   summarise(MedProp = median(propOver, na.rm = TRUE)) %>%
+  # N = 30
+  filter(SampleSize == 30)
+
+
+# Checks where we sum (over replications) the amount of clusters
+numPercClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster %in% c('UniPercClust', 'OverlPercClust', 'AvTotClus')) %>%
+  group_by(SampleSize, cluster) %>%
+  summarise(MedClust = sum(count, na.rm = TRUE)) %>% 
+  # N = 30
+  filter(SampleSize == 30)
+numUniqClust %>% 
+  # Gather clusters in one column
+  gather(key = 'cluster', value = 'count', 1,2,3,4,5,6) %>%
+  mutate(SampleSize = step * 10) %>%
+  # Filter out the average unique, overlapping and total number of clusters
+  filter(cluster %in% c('AvUniClus', 'AvOverlCluster', 'AvTotClus')) %>%
+  # Summarise over sample sizes
+  group_by(SampleSize, cluster) %>%
+  summarise(MedClust = sum(count, na.rm = TRUE)) %>% 
   # N = 30
   filter(SampleSize == 30)
 

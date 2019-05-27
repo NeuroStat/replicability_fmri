@@ -263,20 +263,30 @@ for(i in 1:NRUNS){
     # Empty vector with flags (YES/NO whether percRepl% overlapping)
     FlagOver <- NULL
     
-    # Loop over the clusters
-    for(r in 1:max(clusters[,IDmin])){
-      # We take the r^th cluster and copy to a new image
-      copyImage <- clusters
-      copyImage[!copyImage[,IDmin]==r, IDmin] <- 0
-      # Check in other image: just 1/0 value if cluster is there
-      copyImage[copyImage[,IDmax] != 0, IDmax] <- 1
-      # Now sum both images
-      sumCopy <- copyImage[,1] + copyImage[,2]
-      # Check whether 50% of r equals r + 1
-      propOv <- sum(sumCopy==r+1)/(sum(sumCopy==r) + sum(sumCopy==r + 1))
-      
-      # Add to vector
-      FlagOver <- c(FlagOver, ifelse(propOv >= percRepl, 1, 0))
+    # First check whether there is a cluster in the image with the lowest
+    # amount of significant clusters
+    # If not, we need to skip this cluster as otherwise the for loop falsely
+    # counts this as an unique cluster
+    if(max(clusters[,IDmin]) != 0){
+      # Loop over the clusters
+      for(r in 1:max(clusters[,IDmin])){
+        # We take the r^th cluster and copy to a new image
+        copyImage <- clusters
+        # Only retain the voxels with this cluster (r), set others to 0
+        copyImage[!copyImage[,IDmin]==r, IDmin] <- 0
+        # Check in other image: just 1/0 value if a cluster is there
+        copyImage[copyImage[,IDmax] != 0, IDmax] <- 1
+        # Now sum both images
+        sumCopy <- copyImage[,1] + copyImage[,2]
+        # Calculate the proportion of the sum being r + 1
+        propOv <- sum(sumCopy==r+1)/(sum(sumCopy==r) + sum(sumCopy==r + 1))
+        
+        # Add to vector
+        FlagOver <- c(FlagOver, ifelse(propOv >= percRepl, 1, 0))
+      }
+    # If not, skip this cluster
+    }else{
+      FlagOver <- FlagOver
     }
     
     # Amount of overlapping versus non-overlapping clusters
@@ -287,6 +297,8 @@ for(i in 1:NRUNS){
     FlagOver <- NULL
     # Loop over the clusters
     for(r in 1:max(clusters[,IDmax])){
+      # If no cluster is found in this image, then skip for loop!
+      if(max(clusters[,IDmax]) == 0) next
       # We take the r^th cluster and copy to a new image
       copyImage <- clusters
       copyImage[!copyImage[,IDmax]==r, IDmax] <- 0
@@ -300,7 +312,7 @@ for(i in 1:NRUNS){
       # Add to vector
       FlagOver <- c(FlagOver, ifelse(propOv >= percRepl, 1, 0))
     } 
-    
+
     # Amount of overlapping versus non-overlapping clusters
     OverlPercClust <- (OverlPercClust + sum(FlagOver == 1)) / 2
     uniPercClust <- (uniPercClust + sum(FlagOver == 0)) / 2

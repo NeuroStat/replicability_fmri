@@ -357,7 +357,10 @@ Overlap %>%
   summarise(medOv = median(overlap, na.rm = TRUE)) %>%
   filter(sampleSize == 30)
 
-
+# Zero for stop and go?
+Overlap %>%
+  filter(sampleSize == 30) %>%
+  filter(contrast == 'StopGo') %>% 
 
 #################
 ## Points for overlap and ADAPTIVE THRESHOLDING: MATH > FACES ONLY

@@ -405,7 +405,7 @@ cohQPlot4P
 KappaC %>%
   group_by(SampleSize, contrast) %>%
   summarise(medCoh = median(kappa, na.rm = TRUE)) %>% 
-  filter(medCoh >= 0.80)
+  filter(medCoh >= 0.80) 
 
 # Maximum median kappa for MID and StopGo?
 KappaC %>%
