@@ -33,11 +33,15 @@
 # Location of intermediate results
 LocIntRes <- '../_IntData/'
 
-# Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces','Incentive', 'StopGo')
+# Possible contrasts
+contrast <- c('ML', 'Faces','Incentive_HIT_NO_WIN', 
+              'Incentive_LARGEWIN_SMALLWIN',
+              'StopGo_FailSuc', 'StopGo_SucFail')
 
 # Save locations depending on contrast
-contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo')
+contrSave <- c('1_cognitive', '2_faces', '3_incentive_HIT_NO_WIN', 
+               '4_incentive_LARGEWIN_SMALLWIN',
+               '5_stopgo_FS', '6_stopgo_SF')
 
 # Load in libraries
 library(tidyverse)
@@ -329,12 +333,15 @@ KappaC <- EMParam %>% filter(final == TRUE) %>%
   # Remove columns
   select(run, SampleSize, kappa, contrast)
 
-# Labels for contrasts
+# Contrast labels
+contrLabel <- c('cognitive', 'faces', 'MID: Hit No Win', 
+                'MID: Large Win > Small Win',
+                'Stop & Signal: Fail > Succes',
+                'Stop & Signal: Succes > Fail')
+
+# Add labels to data frame
 KappaC$contrastL <- factor(KappaC$contrast, levels = contrast,
-                          labels = c('cogntive', 
-                                     'faces',
-                                     'MID',
-                                     'Stop and Signal'))
+                      labels = contrLabel)
 
 # Plot with boxplots for all contrasts
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))

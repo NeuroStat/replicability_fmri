@@ -126,22 +126,22 @@ cd "${SAMPLEWD}"
 	for j in $(eval echo "{0..$NumSub}"); do
 		SubID=${subjects[$j]}
 		# Copy contrast map
-		scp -r $data/$SubID/EPI_short_MID/con_0006_feedback_hit_nowin.nii.gz .
+		scp -r $data/$SubID/EPI_short_MID/con_0032_feedback_hit_largewin_-_smallwin.nii.gz .
 		# Rename with subject ID (otherwise we have duplicates in the temp folder)
-		mv con_0006_feedback_hit_nowin.nii.gz con_0006_feedback_hit_nowin_$SubID.nii.gz
+		mv con_0032_feedback_hit_largewin_-_smallwin.nii.gz con_0032_feedback_hit_largewin_-_smallwin_$SubID.nii.gz
 		# Extract
-		gunzip con_0006_feedback_hit_nowin_$SubID.nii.gz
+		gunzip con_0032_feedback_hit_largewin_-_smallwin_$SubID.nii.gz
 		# Same with variance
-		scp -r $data/$SubID/EPI_short_MID/varcon_0006_feedback_hit_nowin.nii.gz .
-		mv varcon_0006_feedback_hit_nowin.nii.gz varcon_0006_feedback_hit_nowin_$SubID.nii.gz
-		gunzip varcon_0006_feedback_hit_nowin_$SubID.nii.gz
+		scp -r $data/$SubID/EPI_short_MID/varcon_0032_feedback_hit_largewin_-_smallwin.nii.gz .
+		mv varcon_0032_feedback_hit_largewin_-_smallwin.nii.gz varcon_0032_feedback_hit_largewin_-_smallwin_$SubID.nii.gz
+		gunzip varcon_0032_feedback_hit_largewin_-_smallwin_$SubID.nii.gz
 		# Copy the universal mask to the temp folder, rename it with a subject index and then send it to the GROUPWD
 		scp -r $data/AllSubMaskInc.nii .
 		mv AllSubMaskInc.nii AllSubMaskInc_$SubID.nii
 		mv AllSubMaskInc_$SubID.nii "$GROUPWD/"
 		# Array with ConFile and VarConFile
-		ConFile=("${ConFile[@]}" con_0006_feedback_hit_nowin_$SubID.nii)
-		VarConFile=("${VarConFile[@]}" varcon_0006_feedback_hit_nowin_$SubID.nii)
+		ConFile=("${ConFile[@]}" con_0032_feedback_hit_largewin_-_smallwin_$SubID.nii)
+		VarConFile=("${VarConFile[@]}" varcon_0032_feedback_hit_largewin_-_smallwin_$SubID.nii)
 	done
 
 	# Use fslmerge with output again to group analysis folder and then extract the files.
@@ -197,18 +197,18 @@ Rscript "${SCRPT}"/voxelInference.R "$GROUPWD" "$GROUPWD/stats" "$signLevel" &> 
 # %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 echo .... Copy Header Information ....
 # Copy header information from subject 33 (random subject): same header, assume safe to copy.
-scp -r $data/33/EPI_short_MID/con_0006_feedback_hit_nowin.nii.gz .
-gunzip con_0006_feedback_hit_nowin.nii.gz 
-$FSLDIR/bin/fslcpgeom con_0006_feedback_hit_nowin.nii thresh_zstat1.nii
+scp -r $data/33/EPI_short_MID/con_0032_feedback_hit_largewin_-_smallwin.nii.gz .
+gunzip con_0032_feedback_hit_largewin_-_smallwin.nii.gz 
+$FSLDIR/bin/fslcpgeom con_0032_feedback_hit_largewin_-_smallwin.nii thresh_zstat1.nii
 # Also for tstat1.nii, because we use it later on in transformations
 		cd stats
-		scp -r $data/33/EPI_short_MID/con_0006_feedback_hit_nowin.nii.gz .
-		gunzip con_0006_feedback_hit_nowin.nii.gz
-		$FSLDIR/bin/fslcpgeom con_0006_feedback_hit_nowin.nii tstat1.nii.gz
-		$FSLDIR/bin/fslcpgeom con_0006_feedback_hit_nowin.nii zstat1.nii.gz
-		rm -r con_0006_feedback_hit_nowin.nii
+		scp -r $data/33/EPI_short_MID/con_0032_feedback_hit_largewin_-_smallwin.nii.gz .
+		gunzip con_0032_feedback_hit_largewin_-_smallwin.nii.gz
+		$FSLDIR/bin/fslcpgeom con_0032_feedback_hit_largewin_-_smallwin.nii tstat1.nii.gz
+		$FSLDIR/bin/fslcpgeom con_0032_feedback_hit_largewin_-_smallwin.nii zstat1.nii.gz
+		rm -r con_0032_feedback_hit_largewin_-_smallwin.nii
 		cd ..
-rm -r con_0006_feedback_hit_nowin.nii
+rm -r con_0032_feedback_hit_largewin_-_smallwin.nii
 
 
 

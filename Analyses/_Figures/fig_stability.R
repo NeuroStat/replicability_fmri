@@ -40,12 +40,13 @@ LocIntRes <- '../_IntData/'
 # Chosen contrast
 chosContr <- 4
 
-# Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
+# Possible contrasts
+contrast <- c('ML', 'Faces','Incentive', 'StopGo_FailSuc')
 contr <- contrast[chosContr]
 
 # Save locations depending on contrast
-contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo')
+contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo_FS')
+
 
 # Load in libraries
 library(tidyverse)

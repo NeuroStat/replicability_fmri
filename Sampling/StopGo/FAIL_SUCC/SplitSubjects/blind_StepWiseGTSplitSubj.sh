@@ -8,7 +8,7 @@ dataMAC=/Volumes/Elements/IMAGEN_DATA/STOP_GO/BL/processed/spm_first_level
 dataHPC=/user/data/gent/gvo000/gvo00022/vsc"$1"/ImagenSG
 
 # Paths of the scripts
-SCRPTmac=/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Sampling/StopGo/SplitSubjects
+SCRPTmac=/Volumes/2_TB_WD_Elements_10B8_Han/PhD/IMAGENDATA/Data/FreddieFreeloader/Script.git/FreddieFreeloader/Sampling/FAIL_SUCC/StopGo/SplitSubjects
 SCRPThpc=/user/scratch/gent/gvo000/gvo00022/vsc"$1"/Freddie/StopGo/SplitSubjects
 
 # Paths of the sample sizes

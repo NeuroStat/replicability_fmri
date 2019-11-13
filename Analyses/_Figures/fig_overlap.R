@@ -35,11 +35,15 @@
 # Location of intermediate results
 LocIntRes <- '../_IntData/'
 
-# Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
+# Possible contrasts
+contrast <- c('ML', 'Faces','Incentive_HIT_NO_WIN', 
+              'Incentive_LARGEWIN_SMALLWIN',
+              'StopGo_FailSuc', 'StopGo_SucFail')
 
 # Save locations depending on contrast
-contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo')
+contrSave <- c('1_cognitive', '2_faces', '3_incentive_HIT_NO_WIN', 
+               '4_incentive_LARGEWIN_SMALLWIN',
+               '5_stopgo_FS', '6_stopgo_SF')
 
 # Load in libraries
 library(tidyverse)
@@ -117,6 +121,15 @@ SignLevels <- readRDS(paste(LocIntRes,'/ML/SignLevels.rda', sep = ''))
 ###############
 ##
 
+# Contrast labels
+#contrLabel <- c('cognitive', 'faces', 'MID',
+#  'Stop and Signal: fail > success',
+#  'Stop and Signal: success > fail')
+contrLabel <- c('cognitive', 'faces', 'MID: Hit No Win', 
+                'MID: Large Win > Small Win',
+                'Stop & Signal: Fail > Succes',
+                'Stop & Signal: Succes > Fail')
+
 # Variables for plotting
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
 subjBreak4P <- c(10, seq(50,700, by=50))
@@ -127,15 +140,9 @@ Overlap$overlap[Overlap$overlap %in% c(0,1)] <- NA
 
 # Make factor of contrasts
 Overlap$contrastL <- factor(Overlap$contrast, levels = contrast,
-          labels = c('cognitive', 
-                     'faces',
-                     'MID',
-                     'Stop and Signal'))
+          labels = contrLabel)
 Correlation$contrastL <- factor(Correlation$contrast, levels = contrast,
-          labels = c('cognitive', 
-                     'faces',
-                     'MID',
-                     'Stop and Signal'))
+          labels = contrLabel)
 
 # Set window 
 quartz.options(width=18,height=12)
@@ -360,7 +367,7 @@ Overlap %>%
 # Zero for stop and go?
 Overlap %>%
   filter(sampleSize == 30) %>%
-  filter(contrast == 'StopGo') %>% 
+  filter(contrast == 'StopGo')
 
 #################
 ## Points for overlap and ADAPTIVE THRESHOLDING: MATH > FACES ONLY

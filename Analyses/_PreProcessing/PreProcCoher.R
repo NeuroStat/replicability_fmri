@@ -37,8 +37,10 @@ scenario_pos <- c('uncorrected', 'fdr')
 scenario <- scenario_pos[2]
 
 # Possible contrasts
-contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
-contr <- contrast[4]
+contrast <- c('ML', 'Faces','Incentive_HIT_NO_WIN', 
+              'Incentive_LARGEWIN_SMALLWIN',
+              'StopGo_FailSuc', 'StopGo_SucFail')
+contr <- contrast[6];contr
 
 # Location of raw data: not included in Github folder (too large)
 # Also take the correct contrast
@@ -53,11 +55,17 @@ if(contr == 'ML'){
 if(contr == 'Faces'){
   RawDat <- RawDatCohFDRF
 }
-if(contr == 'Incentive'){
-  RawDat <- RawDatCohFDRI
+if(contr == 'Incentive_HIT_NO_WIN'){
+  RawDat <- RawDatCohFDRI_NW
 }
-if(contr == 'StopGo'){
-  RawDat <- RawDatCohFDRS
+if(contr == 'Incentive_LARGEWIN_SMALLWIN'){
+  RawDat <- RawDatCohFDRI_LS
+}
+if(contr == 'StopGo_FailSuc'){
+  RawDat <- RawDatCohFDRS_FS
+}
+if(contr == 'StopGo_SucFail'){
+  RawDat <- RawDatCohFDRS_SF
 }
 
 # Load in libraries
@@ -207,9 +215,6 @@ if(scenario == 'fdr'){
   saveRDS(EM_params, 
           file = paste(SaveLoc, '/', contr, '/EM_params_fdr.rda', sep = ''))  
 }
-
-
-
 
 
 

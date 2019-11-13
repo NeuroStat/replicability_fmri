@@ -39,9 +39,11 @@
 # Source paths
 source('blind_PreProcessing.R')
 
-# Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
-contr <- contrast[4]
+# Possible contrasts
+contrast <- c('ML', 'Faces','Incentive_HIT_NO_WIN', 
+              'Incentive_LARGEWIN_SMALLWIN',
+              'StopGo_FailSuc', 'StopGo_SucFail')
+contr <- contrast[6];contr
 
 # Stability is plotted on separate figures for each contrast
 # Therefor, we can use different objects
@@ -51,11 +53,17 @@ if(contr == 'ML'){
 if(contr == 'Faces'){
   RawDat <- RawDatStabF
 }
-if(contr == 'Incentive'){
-  RawDat <- RawDatStabI
+if(contr == 'Incentive_HIT_NO_WIN'){
+  RawDat <- RawDatStabI_NW
 }
-if(contr == 'StopGo'){
-  RawDat <- RawDatStabS
+if(contr == 'Incentive_LARGEWIN_SMALLWIN'){
+  RawDat <- RawDatStabI_LS
+}
+if(contr == 'StopGo_FailSuc'){
+  RawDat <- RawDatStabS_FS
+}
+if(contr == 'StopGo_SucFail'){
+  RawDat <- RawDatStabS_SF
 }
 
 # Load in libraries
@@ -124,7 +132,7 @@ ClustSize <- data.frame('index' = as.integer(),
           'size' = as.numeric(),
           'step' = as.integer(),
           'run' = as.integer(),
-          'group' = as.integer()) %>% as.tibble()
+          'group' = as.integer()) %>% as_tibble()
 
 # Data frame with the number of unique clusters
 numUniqClust <- data.frame('UniClus' = as.integer(),
@@ -134,7 +142,7 @@ numUniqClust <- data.frame('UniClus' = as.integer(),
           'AvOverlCluster'= as.integer(),
           'AvTotClus'= as.integer(),
           'step' = as.integer(),
-          'run' = as.integer()) %>% as.tibble()
+          'run' = as.integer()) %>% as_tibble()
 
 # Data frame with overlapping vs non-overlapping clusters 
 #   when defined as percentage overlapping >= percRepl
@@ -143,13 +151,13 @@ numPercClust <- data.frame('UniPercClust' = as.integer(),
          'TotClus' = as.integer(),
          'AvTotClus'= as.integer(),
          'step' = as.integer(),
-         'run' = as.integer()) %>% as.tibble()
+         'run' = as.integer()) %>% as_tibble()
 
 # Data frame with proportion of overlapping voxels in each image
 propOverVox <- data.frame('OverVox' = as.integer(),
           'TotVox' = as.integer(),
           'step' = as.integer(),
-          'run' = as.integer()) %>% as.tibble()
+          'run' = as.integer()) %>% as_tibble()
 
 # Print statement
 PriST <- (c(1:NRUNS)/NRUNS)[seq(1,NRUNS,length.out=10)][-10]

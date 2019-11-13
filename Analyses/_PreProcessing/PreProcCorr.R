@@ -30,9 +30,11 @@
 # Source paths
 source('blind_PreProcessing.R')
 
-# Possible contrasts: default = MATH > LANGUAGE
-contrast <- c('ML', 'Faces', 'Incentive', 'StopGo')
-contr <- contrast[4]
+# Possible contrasts
+contrast <- c('ML', 'Faces','Incentive_HIT_NO_WIN', 
+              'Incentive_LARGEWIN_SMALLWIN',
+              'StopGo_FailSuc', 'StopGo_SucFail')
+contr <- contrast[6];contr
 
 # Stability is plotted on separate figures for each contrast
 # Therefor, we can use different objects
@@ -42,11 +44,17 @@ if(contr == 'ML'){
 if(contr == 'Faces'){
   dat <- RawDatSplitF
 }
-if(contr == 'Incentive'){
-  dat <- RawDatSplitI
+if(contr == 'Incentive_HIT_NO_WIN'){
+  dat <- RawDatSplitI_NW
 }
-if(contr == 'StopGo'){
-  dat <- RawDatSplitS
+if(contr == 'Incentive_LARGEWIN_SMALLWIN'){
+  dat <- RawDatSplitI_LS
+}
+if(contr == 'StopGo_FailSuc'){
+  dat <- RawDatSplitS_FS
+}
+if(contr == 'StopGo_SucFail'){
+  dat <- RawDatSplitS_SF
 }
 
 
