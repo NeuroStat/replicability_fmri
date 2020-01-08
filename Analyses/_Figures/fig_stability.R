@@ -41,11 +41,14 @@ LocIntRes <- '../_IntData/'
 chosContr <- 4
 
 # Possible contrasts
-contrast <- c('ML', 'Faces','Incentive', 'StopGo_FailSuc')
+contrast <- c('ML', 'Faces','Incentive_HIT_NO_WIN', 
+              'Incentive_LARGEWIN_SMALLWIN',
+              'StopGo_FailSuc', 'StopGo_SucFail')
 contr <- contrast[chosContr]
 
 # Save locations depending on contrast
-contrSave <- c('1_cognitive', '2_faces', '3_incentive', '4_stopgo_FS')
+contrSave <- c('1_cognitive', '2_faces', '3_incentive_HIT_NO_WIN',
+               '4_incentive_LARGEWIN_SMALLWIN', '5_stopgo_FS', '6_stopgo_SF')
 
 
 # Load in libraries
@@ -82,6 +85,9 @@ subjBreak <- c(10, seq(100,700, by=100))
 
 # Data frame with cluster sizes
 ClustSize <- readRDS(paste(LocIntRes, contr, '/', 'ClustSize.rda', sep = ''))
+if(contr == "Incentive_LARGEWIN_SMALLWIN"){
+  ClustSize <- dplyr::mutate(ClustSize, NumMask = 70222) # Same number for mask as Hit No Win contrast
+} 
 
 # Data frame with number of unique and total clusters
 numUniqClust <- readRDS(paste(LocIntRes, contr, '/', 'numUniqClust.rda', sep = ''))

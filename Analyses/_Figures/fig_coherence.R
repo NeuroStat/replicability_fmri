@@ -336,8 +336,8 @@ KappaC <- EMParam %>% filter(final == TRUE) %>%
 # Contrast labels
 contrLabel <- c('cognitive', 'faces', 'MID: Hit No Win', 
                 'MID: Large Win > Small Win',
-                'Stop & Signal: Fail > Succes',
-                'Stop & Signal: Succes > Fail')
+                'Stop Failure > Stop Success',
+                'Stop Success > Stop Failure')
 
 # Add labels to data frame
 KappaC$contrastL <- factor(KappaC$contrast, levels = contrast,
@@ -414,7 +414,7 @@ KappaC %>%
   summarise(medCoh = median(kappa, na.rm = TRUE)) %>% 
   filter(medCoh >= 0.80) 
 
-# Maximum median kappa for MID and StopGo?
+# Maximum median kappa?
 KappaC %>%
   group_by(SampleSize, contrast) %>%
   summarise(medCoh = median(kappa, na.rm = TRUE)) %>% 

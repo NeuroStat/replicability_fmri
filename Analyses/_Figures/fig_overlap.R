@@ -127,8 +127,14 @@ SignLevels <- readRDS(paste(LocIntRes,'/ML/SignLevels.rda', sep = ''))
 #  'Stop and Signal: success > fail')
 contrLabel <- c('cognitive', 'faces', 'MID: Hit No Win', 
                 'MID: Large Win > Small Win',
-                'Stop & Signal: Fail > Succes',
-                'Stop & Signal: Succes > Fail')
+                'Stop Failure > Stop Success',
+                'Stop Success > Stop Failure')
+
+# Different labels for Pearson (as stop signal both contrasts are the same)
+contrLabelPearson <- c('cognitive', 'faces', 'MID: Hit No Win', 
+                'MID: Large Win > Small Win',
+                'Stop Success > Stop Failure',
+                'stop signal (both contrasts)')
 
 # Variables for plotting
 subjBreak <- c(seq(10,110,by=30), seq(150,700, by=50))
@@ -142,7 +148,7 @@ Overlap$overlap[Overlap$overlap %in% c(0,1)] <- NA
 Overlap$contrastL <- factor(Overlap$contrast, levels = contrast,
           labels = contrLabel)
 Correlation$contrastL <- factor(Correlation$contrast, levels = contrast,
-          labels = contrLabel)
+          labels = contrLabelPearson)
 
 # Set window 
 quartz.options(width=18,height=12)
@@ -175,7 +181,7 @@ overlapBoxPlot <-
         legend.position = 'bottom')
 overlapBoxPlot
 
-# Split up into 4 panels
+# Split up into panels
 overlapBoxPlot4P <-
 ggplot(Overlap, aes(x=factor(sampleSize), y = overlap)) + 
   geom_boxplot(aes(fill = contrastL),
@@ -534,7 +540,7 @@ corrBoxPlotC <-
         legend.position = 'bottom')
 corrBoxPlotC
 
-# Version with all contrasts in 4 panels
+# Version with all contrasts in panels
 corrBoxPlotC4P <- 
   ggplot(Correlation, aes(x=factor(sampleSize), y = PearsonCorr)) + 
   geom_boxplot(aes(fill = contrastL),
@@ -563,7 +569,13 @@ corrBoxPlotC4P
 # Plot with median +/- 1e and 3e quantile
 corrQPlot4P <- 
   Correlation %>%
-  group_by(sampleSize, contrastL) %>%
+  # Set "StopGo_FailSuc" to NA as this is the same data as its reverse contrast
+  rowwise() %>%
+  mutate(PearsonCorr = ifelse(contrast == "StopGo_FailSuc", NA, PearsonCorr)) %>%
+  ungroup() %>%
+  filter(!is.na(PearsonCorr)) %>%
+  # Continue
+  group_by(sampleSize, contrastL) %>% 
   summarise(avgCor = mean(PearsonCorr, na.rm = TRUE),
             medCor = median(PearsonCorr, na.rm = TRUE),
             Q1 = quantile(PearsonCorr, probs = 0.25, na.rm = TRUE),
@@ -581,6 +593,8 @@ corrQPlot4P <-
   scale_fill_brewer('contrast ', type = 'qual', palette = 6) +
   scale_colour_brewer('contrast ', type = 'qual', palette = 6) +
   labs(title = 'Unconditional test-retest reliability') +
+  guides(fill = guide_legend(nrow=2,byrow=TRUE),
+         colour = guide_legend(nrow=2,byrow=TRUE)) +
   theme_classic() +
   theme(panel.grid.major = element_line(size = 0.8),
         panel.grid.minor = element_line(size = 0.8),
@@ -643,7 +657,7 @@ Correlation %>% as_tibble() %>%
 Correlation %>%
   group_by(sampleSize, contrast) %>%
   summarise(MedPearson = median(PearsonCorr, na.rm = TRUE)) %>%
-  filter(sampleSize %in% c(30, 50, 70, 80, 700))
+  filter(sampleSize %in% c(30, 50, 70, 80, 700)) 
 
 # Maximum median correlation
 Correlation %>%
